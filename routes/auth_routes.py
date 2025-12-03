@@ -57,15 +57,30 @@ def logout():
 @auth_bp.before_app_request
 def validar_sesion():
     """
-    Verifica inactividad. Si el usuario supera el límite,
-    se cierra la sesión automáticamente.
+    Verifica inactividad REAL del usuario.
+    Se ignoran rutas que no deben ejecutar este validador.
     """
-    if current_user.is_authenticated:
-        if not update_last_activity():
-            logout_user()
-            session.clear()
-            flash("Sesión cerrada por inactividad.", "warning")
-            return redirect(url_for("auth.login"))
+    rutas_publicas = (
+        "/login",
+        "/logout",
+        "/ping",
+        "/static/",
+    )
+
+    # Evitar validación en rutas públicas
+    if request.path.startswith(rutas_publicas):
+        return
+
+    # Si no está logueado → permitir que llegue al login
+    if not current_user.is_authenticated:
+        return
+
+    # Validar inactividad
+    if not update_last_activity():
+        logout_user()
+        session.clear()
+        flash("Sesión cerrada por inactividad.", "warning")
+        return redirect(url_for("auth.login"))
 
 
 # ───────────────────────────────────────────────
