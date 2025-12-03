@@ -10,26 +10,35 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "clave-secreta-super-segura")
 
     # ───────────────────────────────────────────────
-    #   BASE DE DATOS - POSTGRESQL (Render)
+    #   BASE DE DATOS (Render/PostgreSQL o SQLite local)
     # ───────────────────────────────────────────────
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL").replace(
-        "postgres://", "postgresql://"
-    ) if os.getenv("DATABASE_URL") else "sqlite:///local.db"
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    if DATABASE_URL:
+        # Render usa postgres:// pero SQLAlchemy requiere postgresql://
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace("postgres://", "postgresql://")
+    else:
+        SQLALCHEMY_DATABASE_URI = "sqlite:///local.db"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ───────────────────────────────────────────────
-    #   CONTROL DE SESIONES
+    #   CONTROL DE SESIONES / INACTIVIDAD
     # ───────────────────────────────────────────────
-    REMEMBER_COOKIE_DURATION = timedelta(days=7)
 
-    PERMANENT_SESSION_LIFETIME = timedelta(
-        minutes=int(os.getenv("INACTIVITY_MINUTES", 60))
-    )
+    # Tiempo máximo de inactividad antes de cerrar sesión (por defecto 60 min)
+    INACTIVITY_MINUTES = int(os.getenv("INACTIVITY_MINUTES", 60))
+
+    # Flask requiere un lifetime general (esto NO controla la inactividad,
+    # pero sirve para cookies y sesiones permanentes)
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=INACTIVITY_MINUTES)
 
     SESSION_PERMANENT = True
+
+    # Mantiene la cookie "recordarme" por 7 días
+    REMEMBER_COOKIE_DURATION = timedelta(days=7)
 
     # ───────────────────────────────────────────────
     #   CONFIGURACIÓN VISUAL / GLOBAL
     # ───────────────────────────────────────────────
-    ITEMS_PER_PAGE = 20   # paginación en historial, mecánicos, etc.
+    ITEMS_PER_PAGE = 20  # paginación en historial, mecánicos, bodega, etc.
