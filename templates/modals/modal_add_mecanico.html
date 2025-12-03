@@ -1,27 +1,27 @@
-<!-- MODAL AGREGAR MECÁNICO -->
-<div id="modalAddMec" class="modal" style="display:none;">
-    <div class="container" style="max-width:400px;background:white;border-radius:10px;padding:20px;position:relative;top:20vh;">
-        
+<div id="modalAddMec" class="modal">
+
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('modalAddMec').style.display='none'">&times;</span>
+
         <h2>Agregar Mecánico</h2>
 
         <form action="{{ url_for('mecanicos.crear_mecanico') }}" method="POST">
 
-            <label>Nombre completo</label>
+            <label>Nombre:</label>
             <input type="text" name="nombre" required>
 
-            <label>Código (Alfanumérico)</label>
-            <input type="text" name="codigo" required>
+            <label>Código (opcional):</label>
+            <input type="text" name="codigo" id="codigo_mec">
 
-            <label>Posición en taller</label>
+            <small>Si deja este campo vacío, el sistema generará un código automáticamente.</small>
+            <br><br>
+
+            <label>Posición:</label>
             <input type="text" name="posicion">
 
-            <button class="btn" type="submit">Guardar</button>
+            <button type="submit" class="btn">Guardar</button>
         </form>
 
-        <br>
-        <button class="btn-danger" onclick="document.getElementById('modalAddMec').style.display='none'">
-            Cerrar
-        </button>
-
     </div>
+
 </div>

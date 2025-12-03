@@ -4,6 +4,7 @@ from models.base import db
 from models.mecanico import Mecanico
 from utils.decorators import admin_required
 from utils.security import update_last_activity
+from utils.code_generator import generar_codigo_mecanico
 
 mecanicos_bp = Blueprint("mecanicos", __name__, url_prefix="/mecanicos")
 
@@ -31,15 +32,20 @@ def crear_mecanico():
     update_last_activity()
 
     nombre = request.form.get("nombre")
-    codigo = request.form.get("codigo")
+    codigo = request.form.get("codigo")  # puede venir vacío
     posicion = request.form.get("posicion")
 
-    if not nombre or not codigo:
-        flash("Nombre y código son obligatorios.", "error")
+    if not nombre:
+        flash("El nombre es obligatorio.", "error")
         return redirect(url_for("mecanicos.lista_mecanicos"))
 
+    # Si el admin NO escribe código, lo generamos automáticamente
+    if not codigo or codigo.strip() == "":
+        codigo = generar_codigo_mecanico()
+
+    # Verificar código único
     if Mecanico.query.filter_by(codigo=codigo).first():
-        flash("El código ya existe. Debe ser único.", "error")
+        flash("El código generado ya existe, intente nuevamente.", "error")
         return redirect(url_for("mecanicos.lista_mecanicos"))
 
     nuevo = Mecanico(nombre=nombre, codigo=codigo, posicion=posicion)
@@ -47,7 +53,7 @@ def crear_mecanico():
     db.session.add(nuevo)
     db.session.commit()
 
-    flash("Mecánico agregado correctamente.", "success")
+    flash(f"Mecánico agregado. Código asignado automáticamente: {codigo}", "success")
     return redirect(url_for("mecanicos.lista_mecanicos"))
 
 

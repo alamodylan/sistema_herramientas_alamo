@@ -4,6 +4,7 @@ from models.base import db
 from models.herramienta import Herramienta
 from models.mecanico import Mecanico
 from models.prestamo import Prestamo
+from utils.cleaner import limpiar_codigo
 from utils.decorators import admin_required
 from utils.validators import (
     es_codigo_herramienta,
@@ -41,7 +42,8 @@ def bodega():
 def scan_code():
     update_last_activity()
 
-    codigo = request.json.get("codigo", "").strip()
+    codigo_raw = request.json.get("codigo", "")
+    codigo = limpiar_codigo(codigo_raw)
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400

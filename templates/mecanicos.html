@@ -41,4 +41,23 @@
 
 {% include 'modals/modal_add_mecanico.html' %}
 
+<script>
+// ======================================================
+//  GENERAR CÓDIGO AUTOMÁTICO PARA MECÁNICO
+// ======================================================
+function generarCodigoMecanico() {
+    let codigo = "";
+    for (let i = 0; i < 6; i++) {
+        codigo += Math.floor(Math.random() * 10);
+    }
+    return codigo;
+}
+
+// Cuando se abre el modal, asignar un código automáticamente
+function onOpenAddMecModal() {
+    document.getElementById("codigo_mec").value = generarCodigoMecanico();
+    document.getElementById("modalAddMec").style.display = "block";
+}
+</script>
+
 {% endblock %}
