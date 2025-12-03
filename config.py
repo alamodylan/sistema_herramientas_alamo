@@ -24,7 +24,7 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(days=7)
 
     PERMANENT_SESSION_LIFETIME = timedelta(
-        minutes=int(os.getenv("INACTIVITY_MINUTES", 15))
+        minutes=int(os.getenv("INACTIVITY_MINUTES", 60))
     )
 
     SESSION_PERMANENT = True
