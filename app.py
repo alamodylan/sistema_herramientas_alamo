@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
@@ -41,15 +41,34 @@ def create_app():
     # Cierre automático por inactividad
     setup_inactivity_handler(app)
 
-    # Crear tablas si no existen (solo local)
+     # Crear tablas si no existen (solo local)
     with app.app_context():
         db.create_all()
+
+        # Crear usuario admin si no existe
+        if not Usuario.query.filter_by(email="italamo@alamoterminales.com").first():
+            admin = Usuario(
+                nombre="Dylan Bustos",
+                email="italamo@alamoterminales.com",
+                rol="admin"
+            )
+            admin.set_password("atm4261*")
+            db.session.add(admin)
+            db.session.commit()
+            print(">>> Usuario admin creado automáticamente")
 
     return app
 
 
 # Aplicación para Render / Gunicorn
 app = create_app()
+
+# ───────────────────────────────────────────────
+#  REDIRECCIÓN DE HOME → /login
+# ───────────────────────────────────────────────
+@app.route("/")
+def home_redirect():
+    return redirect(url_for("auth.login"))
 
 # ───────────────────────────────────────────────
 #  MAIN LOCAL
