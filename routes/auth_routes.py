@@ -8,7 +8,7 @@ auth_bp = Blueprint("auth", __name__)
 
 
 # ───────────────────────────────────────────────
-#  LOGIN - FORMULARIO
+#  LOGIN - MOSTRAR FORMULARIO
 # ───────────────────────────────────────────────
 @auth_bp.route("/login", methods=["GET"])
 def login():
@@ -18,7 +18,7 @@ def login():
 
 
 # ───────────────────────────────────────────────
-#  LOGIN - PROCESAR
+#  LOGIN - PROCESAR DATOS
 # ───────────────────────────────────────────────
 @auth_bp.route("/login", methods=["POST"])
 def login_post():
@@ -46,18 +46,19 @@ def login_post():
 def logout():
     logout_user()
     session.clear()
+
     flash("Sesión finalizada correctamente.", "info")
     return redirect(url_for("auth.login"))
 
 
 # ───────────────────────────────────────────────
-#  PRUEBA DE SESIÓN / INACTIVIDAD
+#  VALIDADOR DE INACTIVIDAD
 # ───────────────────────────────────────────────
 @auth_bp.before_app_request
 def validar_sesion():
     """
-    Verifica la inactividad del usuario.
-    Si pasa el límite → logout automático.
+    Verifica inactividad. Si el usuario supera el límite,
+    se cierra la sesión automáticamente.
     """
     if current_user.is_authenticated:
         if not update_last_activity():
@@ -65,3 +66,17 @@ def validar_sesion():
             session.clear()
             flash("Sesión cerrada por inactividad.", "warning")
             return redirect(url_for("auth.login"))
+
+
+# ───────────────────────────────────────────────
+#  RUTA RAÍZ "/" → REDIRIGE AUTOMÁTICAMENTE
+# ───────────────────────────────────────────────
+@auth_bp.route("/")
+def home_redirect():
+    """
+    - Si NO está logueado → lo envía a /login
+    - Si SÍ está logueado → lo envía a /bodega
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for("bodega.bodega"))
+    return redirect(url_for("auth.login"))
