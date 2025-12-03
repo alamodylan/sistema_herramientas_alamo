@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models.base import db
 from models.mecanico import Mecanico
 from utils.decorators import admin_required
+from utils.cleaner import limpiar_codigo
 from utils.security import update_last_activity
 from utils.code_generator import generar_codigo_mecanico
 
@@ -32,8 +33,8 @@ def crear_mecanico():
     update_last_activity()
 
     nombre = request.form.get("nombre")
-    codigo = request.form.get("codigo")  # puede venir vacío
     posicion = request.form.get("posicion")
+    codigo = limpiar_codigo(request.form.get("codigo"))
 
     if not nombre:
         flash("El nombre es obligatorio.", "error")

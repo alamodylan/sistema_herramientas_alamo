@@ -5,6 +5,7 @@ from models.herramienta import Herramienta
 from models.prestamo import Prestamo
 from utils.decorators import admin_required
 from utils.security import update_last_activity
+from utils.cleaner import limpiar_codigo
 
 herramientas_bp = Blueprint("herramientas", __name__, url_prefix="/herramientas")
 
@@ -32,7 +33,7 @@ def crear_herramienta():
     update_last_activity()
 
     nombre = request.form.get("nombre")
-    codigo = request.form.get("codigo")
+    codigo = limpiar_codigo(request.form.get("codigo"))
 
     if not nombre or not codigo:
         flash("Nombre y código son obligatorios.", "error")

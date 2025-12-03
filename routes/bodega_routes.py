@@ -43,7 +43,7 @@ def scan_code():
     update_last_activity()
 
     codigo_raw = request.json.get("codigo", "")
-    codigo = limpiar_codigo(codigo_raw)
+    codigo = limpiar_codigo(request.json.get("codigo", ""))
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
