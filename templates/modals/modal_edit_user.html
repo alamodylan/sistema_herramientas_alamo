@@ -1,0 +1,25 @@
+<!-- MODAL EDITAR USUARIO (OPCIONAL) -->
+<div id="modalEditUser" class="modal" style="display:none;">
+    <div class="container" style="max-width:350px;background:white;border-radius:10px;padding:20px;position:relative;top:20vh;">
+
+        <h2>Editar Usuario</h2>
+
+        <form method="POST" action="{{ url_for('auth.edit_user') }}">
+
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ current_user.nombre }}" required>
+
+            <label>Correo</label>
+            <input type="email" name="email" value="{{ current_user.email }}" required>
+
+            <label>Nueva contraseña (opcional)</label>
+            <input type="password" name="password">
+
+            <button class="btn" type="submit">Guardar cambios</button>
+        </form>
+
+        <br>
+        <button class="btn-danger" onclick="document.getElementById('modalEditUser').style.display='none'">Cerrar</button>
+
+    </div>
+</div>

@@ -1,0 +1,24 @@
+<!-- MODAL AGREGAR HERRAMIENTA -->
+<div id="modalAddHerr" class="modal" style="display:none;">
+    <div class="container" style="max-width:400px;background:white;border-radius:10px;padding:20px;position:relative;top:20vh;">
+        
+        <h2>Agregar Herramienta</h2>
+
+        <form action="{{ url_for('herramientas.crear_herramienta') }}" method="POST">
+
+            <label>Nombre de la herramienta</label>
+            <input type="text" name="nombre" required>
+
+            <label>Código (numérico – código de barras existente)</label>
+            <input type="text" name="codigo" required>
+
+            <button class="btn" type="submit">Guardar</button>
+        </form>
+
+        <br>
+        <button class="btn-danger" onclick="document.getElementById('modalAddHerr').style.display='none'">
+            Cerrar
+        </button>
+
+    </div>
+</div>

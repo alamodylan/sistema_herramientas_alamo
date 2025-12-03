@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block contenido %}
+
+<div style="max-width:400px;margin:auto;text-align:center;">
+
+    <h2 style="margin-bottom:20px;">Ingreso al Sistema</h2>
+
+    <form action="{{ url_for('auth.login_post') }}" method="POST">
+
+        <label>Correo electrónico</label>
+        <input type="email" name="email" required>
+
+        <label>Contraseña</label>
+        <input type="password" name="password" required>
+
+        <button class="btn" type="submit">Ingresar</button>
+
+    </form>
+
+</div>
+
+{% endblock %}

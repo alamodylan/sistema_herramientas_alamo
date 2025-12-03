@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block contenido %}
+<h1>Historial de Préstamos</h1>
+
+<form method="GET">
+    <label>Mecánico</label>
+    <select name="mecanico">
+        <option value="">-- Todos --</option>
+        {% for m in mecanicos %}
+            <option value="{{ m.id }}" {% if filtros.mecanico == m.id|string %}selected{% endif %}>
+                {{ m.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Herramienta</label>
+    <select name="herramienta">
+        <option value="">-- Todas --</option>
+        {% for h in herramientas %}
+            <option value="{{ h.id }}" {% if filtros.herramienta == h.id|string %}selected{% endif %}>
+                {{ h.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Fecha</label>
+    <input type="date" name="fecha" value="{{ filtros.fecha }}">
+
+    <button class="btn" type="submit">Filtrar</button>
+</form>
+
+<hr>
+
+<table>
+    <thead>
+        <tr>
+            <th>Herramienta</th>
+            <th>Mecánico</th>
+            <th>Inicio</th>
+            <th>Devolución</th>
+            <th>Tiempo de Uso</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in prestamos.items %}
+        <tr>
+            <td>{{ p.herramienta.nombre }}</td>
+            <td>{{ p.mecanico.nombre }}</td>
+            <td>{{ p.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>
+                {% if p.fecha_devolucion %}
+                    {{ p.fecha_devolucion.strftime('%d/%m/%Y %H:%M') }}
+                {% else %}
+                    En uso
+                {% endif %}
+            </td>
+            <td>
+                {% if p.tiempo_uso %}
+                    {{ p.tiempo_uso }} min
+                {% else %}
+                    En uso
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- PAGINADOR -->
+<div style="margin-top:20px;">
+    {% if prestamos.has_prev %}
+        <a class="btn" href="?page={{ prestamos.prev_num }}">Anterior</a>
+    {% endif %}
+
+    {% if prestamos.has_next %}
+        <a class="btn" href="?page={{ prestamos.next_num }}">Siguiente</a>
+    {% endif %}
+</div>
+
+{% endblock %}

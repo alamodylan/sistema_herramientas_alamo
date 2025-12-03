@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Herramientas Álamo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+
+    <!-- NAVBAR PRINCIPAL -->
+    <nav class="navbar">
+        <div class="left">
+            <strong>Sistema Herramientas Álamo</strong>
+        </div>
+        <div class="right">
+            <a href="{{ url_for('bodega.bodega') }}">Bodega</a>
+            <a href="{{ url_for('mecanicos.lista_mecanicos') }}">Mecánicos</a>
+            <a href="{{ url_for('herramientas.lista_herramientas') }}">Herramientas</a>
+            <a href="{{ url_for('historial.historial') }}">Historial</a>
+            <a href="{{ url_for('auth.logout') }}">Salir</a>
+        </div>
+    </nav>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="container">
+
+        <!-- MENSAJES FLASH -->
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+            {% for categoria, mensaje in mensajes %}
+                <div class="alert-{{ categoria }}">
+                    {{ mensaje }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- CONTENIDO DE CADA PÁGINA -->
+        {% block contenido %}{% endblock %}
+    </div>
+
+    <!-- JS GLOBAL -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

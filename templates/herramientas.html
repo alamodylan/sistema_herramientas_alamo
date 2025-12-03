@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block contenido %}
+<h1>Herramientas</h1>
+
+{% if current_user.es_admin() %}
+<button class="btn" onclick="document.getElementById('modalAddHerr').style.display='block'">
+    Agregar Herramienta
+</button>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Código</th>
+            <th>Estado</th>
+            {% if current_user.es_admin() %}
+            <th>Acciones</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in herramientas %}
+        <tr>
+            <td>{{ h.nombre }}</td>
+            <td>{{ h.codigo }}</td>
+            <td>{{ h.estado }}</td>
+
+            {% if current_user.es_admin() %}
+            <td>
+                <form action="{{ url_for('herramientas.eliminar_herramienta', id=h.id) }}" method="POST">
+                    <button class="btn-danger" onclick="return confirm('¿Eliminar herramienta?')">
+                        Eliminar
+                    </button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% include 'modals/modal_add_herramienta.html' %}
+
+{% endblock %}
