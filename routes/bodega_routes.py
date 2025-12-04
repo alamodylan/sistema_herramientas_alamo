@@ -19,59 +19,6 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 # ───────────────────────────────────────────────
 #  PANTALLA PRINCIPAL DE BODEGA
 # ───────────────────────────────────────────────
-@bodega_bp.route("/")
-@login_required
-def bodega():
-    update_last_activity()
-
-    herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
-    prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
-
-    return render_template(
-        "bodega.html",
-        herramientas_disponibles=herramientas_disponibles,
-        prestamos_activos=prestamos_activos,
-    )
-
-
-# ───────────────────────────────────────────────
-#   API PARA ESCANEO (POST)
-# ───────────────────────────────────────────────
-@bodega_bp.route("/scan", methods=["POST"])
-@login_required
-def scan_code():
-    update_last_activity()
-
-    codigo_raw = request.json.get("codigo", "")
-    codigo = limpiar_codigo(request.json.get("codigo", ""))
-
-    if not codigo:
-        return jsonify({"error": "Código vacío"}), 400
-
-    # 1) ¿Es herramienta?
-    if es_codigo_herramienta(codigo):
-        herramienta = Herramienta.query.filter_by(codigo=codigo).first()
-        if not herramienta:
-            return jsonify({"error": "Herramienta no registrada."}), 404
-
-        # Guardamos herramienta temporalmente en sesión
-        # El front enviará luego el mecánico
-        return jsonify({"tipo": "herramienta", "id": herramienta.id})
-
-    # 2) ¿Es mecánico?
-    if es_codigo_mecanico(codigo):
-        mecanico = Mecanico.query.filter_by(codigo=codigo).first()
-        if not mecanico:
-            return jsonify({"error": "Mecánico no registrado."}), 404
-
-        return jsonify({"tipo": "mecanico", "id": mecanico.id})
-
-    return jsonify({"error": "Código no reconocido."}), 400
-
-
-# ───────────────────────────────────────────────
-#   PRESTAR HERRAMIENTA
-# ───────────────────────────────────────────────
 @bodega_bp.route("/scan", methods=["POST"])
 @login_required
 def scan_code():
@@ -100,6 +47,43 @@ def scan_code():
         return jsonify({"error": "Mecánico no registrado."}), 404
 
     return jsonify({"error": "Código no reconocido."}), 400
+
+# ───────────────────────────────────────────────
+#   PRESTAR HERRAMIENTA
+# ───────────────────────────────────────────────
+@bodega_bp.route("/prestar", methods=["POST"])
+@login_required
+def prestar_herramienta():
+    update_last_activity()
+
+    id_herramienta = request.json.get("herramienta_id")
+    id_mecanico = request.json.get("mecanico_id")
+
+    herramienta = Herramienta.query.get(id_herramienta)
+    mecanico = Mecanico.query.get(id_mecanico)
+
+    if not herramienta or not mecanico:
+        return jsonify({"error": "Datos inválidos"}), 400
+
+    if herramienta.estado == "Prestada":
+        return jsonify({"error": "Esta herramienta ya está prestada."}), 400
+
+    # Crear préstamo
+    prestamo = Prestamo(
+        id_herramienta=herramienta.id,
+        id_mecanico=mecanico.id,
+        fecha_prestamo=datetime.utcnow(),
+        estado="Abierto"
+    )
+    herramienta.estado = "Prestada"
+
+    db.session.add(prestamo)
+    db.session.commit()
+
+    return jsonify({
+        "ok": True,
+        "mensaje": f"Herramienta {herramienta.nombre} prestada a {mecanico.nombre}"
+    })
 
 
 # ───────────────────────────────────────────────
