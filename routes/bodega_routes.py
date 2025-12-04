@@ -13,6 +13,7 @@ from utils.validators import (
 from utils.security import update_last_activity
 from datetime import datetime
 import pytz   # ← ← ← AGREGADO PARA ZONA HORARIA CR
+from pytz import timezone, utc
 
 bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 
@@ -25,8 +26,17 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 def bodega():
     update_last_activity()
 
+    cr = timezone("America/Costa_Rica")
+
     herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
     prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
+
+    # Convertir todas las fechas a hora CR
+    for p in prestamos_activos:
+        if p.fecha_prestamo:
+            p.fecha_prestamo_cr = p.fecha_prestamo.replace(tzinfo=utc).astimezone(cr)
+        else:
+            p.fecha_prestamo_cr = None
 
     return render_template(
         "bodega.html",
