@@ -72,39 +72,34 @@ def scan_code():
 # ───────────────────────────────────────────────
 #   PRESTAR HERRAMIENTA
 # ───────────────────────────────────────────────
-@bodega_bp.route("/prestar", methods=["POST"])
+@bodega_bp.route("/scan", methods=["POST"])
 @login_required
-def prestar_herramienta():
+def scan_code():
     update_last_activity()
 
-    id_herramienta = request.json.get("herramienta_id")
-    id_mecanico = request.json.get("mecanico_id")
+    codigo = limpiar_codigo(request.json.get("codigo", ""))
 
-    herramienta = Herramienta.query.get(id_herramienta)
-    mecanico = Mecanico.query.get(id_mecanico)
+    if not codigo:
+        return jsonify({"error": "Código vacío"}), 400
 
-    if not herramienta or not mecanico:
-        return jsonify({"error": "Datos inválidos"}), 400
+    # 🔹 1) PRIMERO buscar si existe como herramienta
+    herramienta = Herramienta.query.filter_by(codigo=codigo).first()
+    if herramienta:
+        return jsonify({"tipo": "herramienta", "id": herramienta.id})
 
-    if herramienta.estado == "Prestada":
-        return jsonify({"error": "Esta herramienta ya está prestada."}), 400
+    # 🔹 2) Luego buscar si existe como mecánico
+    mecanico = Mecanico.query.filter_by(codigo=codigo).first()
+    if mecanico:
+        return jsonify({"tipo": "mecanico", "id": mecanico.id})
 
-    # Crear préstamo
-    prestamo = Prestamo(
-        id_herramienta=herramienta.id,
-        id_mecanico=mecanico.id,
-        fecha_prestamo=datetime.utcnow(),
-        estado="Abierto"
-    )
-    herramienta.estado = "Prestada"
+    # 🔹 3) Si no existe en BD → recién ahí validamos qué tipo debió ser
+    if es_codigo_herramienta(codigo):
+        return jsonify({"error": "Herramienta no registrada."}), 404
 
-    db.session.add(prestamo)
-    db.session.commit()
+    if es_codigo_mecanico(codigo):
+        return jsonify({"error": "Mecánico no registrado."}), 404
 
-    return jsonify({
-        "ok": True,
-        "mensaje": f"Herramienta {herramienta.nombre} prestada a {mecanico.nombre}"
-    })
+    return jsonify({"error": "Código no reconocido."}), 400
 
 
 # ───────────────────────────────────────────────
