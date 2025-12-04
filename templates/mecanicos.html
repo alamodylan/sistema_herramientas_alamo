@@ -15,6 +15,7 @@
             <th>Nombre</th>
             <th>Código</th>
             <th>Posición</th>
+            <th>Código de Barras</th>
             {% if current_user.es_admin() %}
             <th>Acciones</th>
             {% endif %}
@@ -26,6 +27,14 @@
             <td>{{ m.nombre }}</td>
             <td>{{ m.codigo }}</td>
             <td>{{ m.posicion }}</td>
+
+            <!-- NUEVA COLUMNA -->
+            <td>
+                <a class="btn"
+                   href="{{ url_for('mecanicos.descargar_barcode_mecanico', id=m.id) }}">
+                    📦 Descargar
+                </a>
+            </td>
 
             {% if current_user.es_admin() %}
             <td>

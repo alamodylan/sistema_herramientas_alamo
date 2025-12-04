@@ -6,6 +6,11 @@ from utils.decorators import admin_required
 from utils.cleaner import limpiar_codigo
 from utils.security import update_last_activity
 from utils.code_generator import generar_codigo_mecanico
+from flask import send_file
+import barcode
+from barcode.writer import ImageWriter
+from PIL import Image, ImageDraw, ImageFont
+import io
 
 mecanicos_bp = Blueprint("mecanicos", __name__, url_prefix="/mecanicos")
 
@@ -114,3 +119,56 @@ def eliminar_mecanico(id):
 
     flash("Mecánico eliminado correctamente.", "success")
     return redirect(url_for("mecanicos.lista_mecanicos"))
+
+# ───────────────────────────────────────────────
+#   DESCARGAR CÓDIGO DE BARRAS DEL MECÁNICO
+# ───────────────────────────────────────────────
+@mecanicos_bp.route("/barcode/<int:id>", methods=["GET"])
+@login_required
+def descargar_barcode_mecanico(id):
+    update_last_activity()
+
+    mecanico = Mecanico.query.get_or_404(id)
+
+    codigo = mecanico.codigo        # Ej: M001
+    nombre = mecanico.nombre        # Ej: Juan Pérez
+
+    # Crear código de barras en memoria
+    Code128 = barcode.get_barcode_class('code128')
+
+    buffer = io.BytesIO()
+    code = Code128(codigo, writer=ImageWriter())
+
+    # Guardar código de barras simple
+    code.write(buffer)
+    buffer.seek(0)
+
+    barcode_img = Image.open(buffer)
+
+    # Crear espacio adicional para el nombre
+    width, height = barcode_img.size
+    final_img = Image.new("RGB", (width, height + 40), "white")
+    final_img.paste(barcode_img, (0, 0))
+
+    draw = ImageDraw.Draw(final_img)
+
+    try:
+        font = ImageFont.truetype("arial.ttf", 22)
+    except:
+        font = ImageFont.load_default()
+
+    # Centrar nombre
+    text_w = draw.textlength(nombre, font=font)
+    draw.text(((width - text_w) / 2, height + 5), nombre, fill="black", font=font)
+
+    # Guardar imagen final
+    output = io.BytesIO()
+    final_img.save(output, format="PNG")
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"{codigo}_{nombre}.png"
+    )
