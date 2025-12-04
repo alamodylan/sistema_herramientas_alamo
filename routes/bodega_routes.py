@@ -19,10 +19,6 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 # ───────────────────────────────────────────────
 #  PANTALLA PRINCIPAL DE BODEGA
 # ───────────────────────────────────────────────
-
-# ───────────────────────────────────────────────
-#  PANTALLA PRINCIPAL DE BODEGA
-# ───────────────────────────────────────────────
 @bodega_bp.route("/")
 @login_required
 def bodega():
@@ -40,8 +36,12 @@ def bodega():
 @login_required
 def scan_code():
     update_last_activity()
-
+    
+    codigo_raw = request.json.get("codigo", "")
     codigo = limpiar_codigo(request.json.get("codigo", ""))
+
+    print("DEBUG — RAW:", repr(request.json.get("codigo", "")))
+    print("DEBUG — CLEAN:", repr(codigo))
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
