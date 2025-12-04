@@ -19,6 +19,23 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 # ───────────────────────────────────────────────
 #  PANTALLA PRINCIPAL DE BODEGA
 # ───────────────────────────────────────────────
+
+# ───────────────────────────────────────────────
+#  PANTALLA PRINCIPAL DE BODEGA
+# ───────────────────────────────────────────────
+@bodega_bp.route("/")
+@login_required
+def bodega():
+    update_last_activity()
+
+    herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
+    prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
+
+    return render_template(
+        "bodega.html",
+        herramientas_disponibles=herramientas_disponibles,
+        prestamos_activos=prestamos_activos,
+    )
 @bodega_bp.route("/scan", methods=["POST"])
 @login_required
 def scan_code():
