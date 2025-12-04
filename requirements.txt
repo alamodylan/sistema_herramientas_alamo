@@ -4,9 +4,14 @@ Flask-Login==0.6.3
 pg8000==1.31.2
 python-dotenv==1.0.1
 gunicorn==21.2.0
+
+# Generación de códigos de barras
 python-barcode
 Pillow
 
-# Para refrescar sin recargar (opcional, pero recomendado)
+# Zona horaria Costa Rica
+pytz
+
+# Para refrescar sin recargar (opcional)
 Flask-SocketIO==5.3.6
 eventlet==0.33.3

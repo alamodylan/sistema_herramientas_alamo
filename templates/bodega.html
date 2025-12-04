@@ -49,7 +49,7 @@
             <td>{{ p.herramienta.codigo }}</td>
             <td>{{ p.mecanico.nombre }}</td>
             <td>
-                {{ ((now() - p.fecha_prestamo).seconds // 60) if p.fecha_prestamo else 0 }}
+                {{ ((p.fecha_prestamo.replace(tzinfo=utc).astimezone(cr) | default(0)) if p.fecha_prestamo else 0) }}
             </td>
             <td><span class="badge badge-prestada">Prestada</span></td>
         </tr>

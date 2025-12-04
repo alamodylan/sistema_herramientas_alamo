@@ -12,6 +12,7 @@ from utils.validators import (
 )
 from utils.security import update_last_activity
 from datetime import datetime
+import pytz   # ← ← ← AGREGADO PARA ZONA HORARIA CR
 
 bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 
@@ -32,6 +33,11 @@ def bodega():
         herramientas_disponibles=herramientas_disponibles,
         prestamos_activos=prestamos_activos,
     )
+
+
+# ───────────────────────────────────────────────
+#   API PARA ESCANEO
+# ───────────────────────────────────────────────
 @bodega_bp.route("/scan", methods=["POST"])
 @login_required
 def scan_code():
@@ -46,22 +52,17 @@ def scan_code():
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
 
-    # 🔸 Ignorar lecturas incompletas del lector
-    # (Evita errores cuando envía 1 → 18 → 182 → 1829 → 18293)
     if codigo.isdigit() and len(codigo) < 5:
         return jsonify({"partial": True}), 200
 
-    # 🔹 1) PRIMERO buscar si existe como herramienta
     herramienta = Herramienta.query.filter_by(codigo=codigo).first()
     if herramienta:
         return jsonify({"tipo": "herramienta", "id": herramienta.id})
 
-    # 🔹 2) Luego buscar si existe como mecánico
     mecanico = Mecanico.query.filter_by(codigo=codigo).first()
     if mecanico:
         return jsonify({"tipo": "mecanico", "id": mecanico.id})
 
-    # 🔹 3) Si no existe en BD → recién ahí validamos qué tipo debió ser
     if es_codigo_herramienta(codigo):
         return jsonify({"error": "Herramienta no registrada."}), 404
 
@@ -69,6 +70,8 @@ def scan_code():
         return jsonify({"error": "Mecánico no registrado."}), 404
 
     return jsonify({"error": "Código no reconocido."}), 400
+
+
 # ───────────────────────────────────────────────
 #   PRESTAR HERRAMIENTA
 # ───────────────────────────────────────────────
@@ -89,7 +92,6 @@ def prestar_herramienta():
     if herramienta.estado == "Prestada":
         return jsonify({"error": "Esta herramienta ya está prestada."}), 400
 
-    # Crear préstamo
     prestamo = Prestamo(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
@@ -124,7 +126,6 @@ def devolver_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
-    # Buscar préstamo activo
     prestamo = Prestamo.query.filter_by(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
@@ -134,7 +135,6 @@ def devolver_herramienta():
     if not prestamo:
         return jsonify({"error": "Esta herramienta no está registrada como prestada a este mecánico."}), 400
 
-    # Cerrar préstamo
     prestamo.cerrar_prestamo()
     herramienta.estado = "Disponible"
 
@@ -147,13 +147,15 @@ def devolver_herramienta():
 
 
 # ───────────────────────────────────────────────
-#   API - LISTA DINÁMICA DE BODEGA
-#   (Actualización automática desde JS)
+#   API - ESTADO DE BODEGA (CAMBIADO A HORA CR)
 # ───────────────────────────────────────────────
 @bodega_bp.route("/estado", methods=["GET"])
 @login_required
 def estado_bodega():
     update_last_activity()
+
+    tz_cr = pytz.timezone("America/Costa_Rica")
+    ahora_cr = datetime.now(tz_cr)
 
     disponibles = [{
         "id": h.id,
@@ -161,12 +163,20 @@ def estado_bodega():
         "codigo": h.codigo
     } for h in Herramienta.query.filter_by(estado="Disponible").all()]
 
-    prestadas = [{
-        "id": p.herramienta.id,
-        "nombre": p.herramienta.nombre,
-        "codigo": p.herramienta.codigo,
-        "mecanico": p.mecanico.nombre,
-        "tiempo": (datetime.utcnow() - p.fecha_prestamo).seconds // 60
-    } for p in Prestamo.query.filter_by(estado="Abierto").all()]
+    prestadas = []
+    for p in Prestamo.query.filter_by(estado="Abierto").all():
+
+        # Convertir fecha UTC de la base → hora Costa Rica
+        fecha_prestamo_cr = p.fecha_prestamo.replace(tzinfo=pytz.utc).astimezone(tz_cr)
+
+        minutos = int((ahora_cr - fecha_prestamo_cr).total_seconds() // 60)
+
+        prestadas.append({
+            "id": p.herramienta.id,
+            "nombre": p.herramienta.nombre,
+            "codigo": p.herramienta.codigo,
+            "mecanico": p.mecanico.nombre,
+            "tiempo": minutos
+        })
 
     return jsonify({"disponibles": disponibles, "prestadas": prestadas})
