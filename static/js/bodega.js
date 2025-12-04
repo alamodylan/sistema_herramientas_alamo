@@ -22,7 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.error) {
-            alert(data.error);
+            // ❌ Quitamos alert
+            console.warn("SCAN ERROR:", data.error);
             input.value = "";
             return;
         }
@@ -48,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
-    // ¿La herramienta está prestada?
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
@@ -68,13 +68,13 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
     const data = await res.json();
 
     if (data.error) {
-        alert(data.error);
+        console.warn("MOV ERROR:", data.error);
         return;
     }
 
-    alert(data.mensaje);
+    // ❌ Quitamos alert
+    console.log(data.mensaje);
 
-    // Actualizar tablas
     actualizarTablas();
 }
 
