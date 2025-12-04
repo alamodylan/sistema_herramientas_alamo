@@ -46,6 +46,11 @@ def scan_code():
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
 
+    # 🔸 Ignorar lecturas incompletas del lector
+    # (Evita errores cuando envía 1 → 18 → 182 → 1829 → 18293)
+    if codigo.isdigit() and len(codigo) < 5:
+        return jsonify({"partial": True}), 200
+
     # 🔹 1) PRIMERO buscar si existe como herramienta
     herramienta = Herramienta.query.filter_by(codigo=codigo).first()
     if herramienta:
@@ -64,7 +69,6 @@ def scan_code():
         return jsonify({"error": "Mecánico no registrado."}), 404
 
     return jsonify({"error": "Código no reconocido."}), 400
-
 # ───────────────────────────────────────────────
 #   PRESTAR HERRAMIENTA
 # ───────────────────────────────────────────────
