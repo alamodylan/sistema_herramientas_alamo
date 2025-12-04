@@ -21,7 +21,7 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 # ───────────────────────────────────────────────
 #  PANTALLA PRINCIPAL DE BODEGA
 # ───────────────────────────────────────────────
-bodega_bp.route("/")
+@bodega_bp.route("/")
 @login_required
 def bodega():
     update_last_activity()
