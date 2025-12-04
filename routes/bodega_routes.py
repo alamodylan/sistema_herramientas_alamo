@@ -21,7 +21,7 @@ bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 # ───────────────────────────────────────────────
 #  PANTALLA PRINCIPAL DE BODEGA
 # ───────────────────────────────────────────────
-@bodega_bp.route("/")
+bodega_bp.route("/")
 @login_required
 def bodega():
     update_last_activity()
@@ -31,19 +31,21 @@ def bodega():
     herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
     prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
 
-    # Convertir todas las fechas a hora CR
+    ahora_cr = datetime.utcnow().replace(tzinfo=utc).astimezone(cr)
+
+    # Convertir fechas Y calcular minutos
     for p in prestamos_activos:
         if p.fecha_prestamo:
-            p.fecha_prestamo_cr = p.fecha_prestamo.replace(tzinfo=utc).astimezone(cr)
+            hora_cr = p.fecha_prestamo.replace(tzinfo=utc).astimezone(cr)
+            p.minutos = (ahora_cr - hora_cr).seconds // 60
         else:
-            p.fecha_prestamo_cr = None
+            p.minutos = 0
 
     return render_template(
         "bodega.html",
         herramientas_disponibles=herramientas_disponibles,
         prestamos_activos=prestamos_activos,
     )
-
 
 # ───────────────────────────────────────────────
 #   API PARA ESCANEO

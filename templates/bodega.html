@@ -50,7 +50,7 @@
             <td>{{ p.mecanico.nombre }}</td>
             <td>
                 {% if p.fecha_prestamo_cr %}
-                    {{ ((now() - p.fecha_prestamo_cr).seconds // 60) }}
+                    {{ p.minutos }}
                 {% else %}
                     0
                 {% endif %}
