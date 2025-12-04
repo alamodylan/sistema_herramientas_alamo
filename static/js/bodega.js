@@ -6,8 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let herramientaID = null;
     let mecanicoID = null;
 
-    // Auto-focus permanente
-    setInterval(() => input.focus(), 500);
+    // Auto-focus permanente sin interferir
+    setInterval(() => {
+        if (document.activeElement !== input) input.focus();
+    }, 300);
 
     input.addEventListener("input", async () => {
         const codigo = input.value.trim();
@@ -21,10 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await res.json();
 
-        // ❌ Se quita el alert de error
+        // ❗ Si es lectura incompleta → ignorar sin romper nada
+        if (data.partial) {
+            return; // NO limpiar input todavía
+        }
+
+        // Limpiar input SOLO cuando la lectura es válida
+        input.value = "";
+
         if (data.error) {
-            // alert(data.error);
-            input.value = "";
+            // Puedes quitar este alert si quieres mensajes silenciosos
+            alert(data.error);
+            herramientaID = null;
+            mecanicoID = null;
             return;
         }
 
@@ -34,21 +45,19 @@ document.addEventListener("DOMContentLoaded", () => {
             mecanicoID = data.id;
         }
 
-        // Si ya tenemos ambos → procesar
+        // Si ya tenemos los dos → prestar o devolver
         if (herramientaID && mecanicoID) {
             procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
             mecanicoID = null;
         }
-
-        input.value = "";
     });
-
 });
 
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
+    // Obtener estado actual
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
@@ -56,7 +65,7 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
 
     const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
 
-    const res = await fetch(endpoint, {
+    await fetch(endpoint, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
@@ -65,23 +74,11 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
         })
     });
 
-    const data = await res.json();
-
-    // ❌ Se quita el alert de error
-    if (data.error) {
-        // alert(data.error);
-        return;
-    }
-
-    // ❌ Se quita el alert de mensaje
-    // alert(data.mensaje);
-
-    // Actualizar tablas
+    // Actualizar tablas siempre
     actualizarTablas();
 }
 
-
-// REFRESCAR LISTAS AUTOMÁTICAMENTE
+// ACTUALIZAR TABLAS
 async function actualizarTablas() {
     const res = await fetch("/bodega/estado");
     const data = await res.json();
