@@ -56,25 +56,47 @@ def scan_code():
     update_last_activity()
     
     codigo_raw = request.json.get("codigo", "")
-    codigo = limpiar_codigo(request.json.get("codigo", ""))
+    codigo = limpiar_codigo(codigo_raw)
 
-    print("DEBUG — RAW:", repr(request.json.get("codigo", "")))
+    print("DEBUG — RAW:", repr(codigo_raw))
     print("DEBUG — CLEAN:", repr(codigo))
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
 
-    if codigo.isdigit() and len(codigo) < 5:
+    # ================================
+    #   🔥 NUEVO: Filtrar rebotes
+    # ================================
+    # Filtrar SOLO números
+    solo_digitos = "".join([c for c in codigo if c.isdigit()])
+
+    # Ignorar lecturas incompletas del lector
+    if len(solo_digitos) < 5:
         return jsonify({"partial": True}), 200
 
+    # Si el lector manda más de 5 dígitos (doble lectura), cortar
+    if len(solo_digitos) > 5:
+        solo_digitos = solo_digitos[:5]
+
+    # Sobrescribir código final
+    codigo = solo_digitos
+
+    print("DEBUG — FINAL:", repr(codigo))
+    # ================================
+    #   FIN DEL BLOQUE NUEVO
+    # ================================
+
+    # Buscar herramienta
     herramienta = Herramienta.query.filter_by(codigo=codigo).first()
     if herramienta:
         return jsonify({"tipo": "herramienta", "id": herramienta.id})
 
+    # Buscar mecánico
     mecanico = Mecanico.query.filter_by(codigo=codigo).first()
     if mecanico:
         return jsonify({"tipo": "mecanico", "id": mecanico.id})
 
+    # Validaciones según tipo
     if es_codigo_herramienta(codigo):
         return jsonify({"error": "Herramienta no registrada."}), 404
 
