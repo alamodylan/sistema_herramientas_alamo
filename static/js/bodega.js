@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let herramientaID = null;
     let mecanicoID = null;
 
-    // Auto-focus estable
-    setInterval(() => input.focus(), 400);
+    // Auto-focus permanente
+    setInterval(() => input.focus(), 500);
 
     input.addEventListener("input", async () => {
         const codigo = input.value.trim();
@@ -21,48 +21,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await res.json();
 
-        // Si el scanner manda lecturas incompletas (1,18,182, etc)
-        if (data.partial) {
-            return; // No limpiar el input
-        }
-
-        // Limpiar input SOLO cuando el código está completo
-        input.value = "";
-
-        // Si hay error, lo mostramos y reiniciamos
         if (data.error) {
-            // Puedes eliminar esta línea si no quieres alertas:
-            // alert(data.error);
-            herramientaID = null;
-            mecanicoID = null;
+            alert(data.error);
+            input.value = "";
             return;
         }
 
-        // Clasificación correcta
         if (data.tipo === "herramienta") {
             herramientaID = data.id;
-        }
-
-        if (data.tipo === "mecanico") {
+        } else if (data.tipo === "mecanico") {
             mecanicoID = data.id;
         }
 
         // Si ya tenemos ambos → procesar
         if (herramientaID && mecanicoID) {
-            await procesarMovimiento(herramientaID, mecanicoID);
+            procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
             mecanicoID = null;
         }
+
+        input.value = "";
     });
+
 });
 
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
+    // ¿La herramienta está prestada?
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
     const estaPrestada = est.prestadas.some(p => p.id === herramientaID);
+
     const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
 
     const res = await fetch(endpoint, {
@@ -76,14 +67,18 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
 
     const data = await res.json();
 
-    // Puedes eliminar esta línea para no mostrar alertas:
-    // if (!data.error && data.mensaje) alert(data.mensaje);
+    if (data.error) {
+        alert(data.error);
+        return;
+    }
 
-    // Refrescar tablas SIEMPRE
+    alert(data.mensaje);
+
+    // Actualizar tablas
     actualizarTablas();
 }
 
-// REFRESCAR TABLAS
+// REFRESCAR LISTAS AUTOMÁTICAMENTE
 async function actualizarTablas() {
     const res = await fetch("/bodega/estado");
     const data = await res.json();

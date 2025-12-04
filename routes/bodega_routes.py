@@ -56,36 +56,25 @@ def scan_code():
     update_last_activity()
     
     codigo_raw = request.json.get("codigo", "")
-    codigo = limpiar_codigo(codigo_raw)
+    codigo = limpiar_codigo(request.json.get("codigo", ""))
 
-    print("DEBUG — RAW:", repr(codigo_raw))
+    print("DEBUG — RAW:", repr(request.json.get("codigo", "")))
     print("DEBUG — CLEAN:", repr(codigo))
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
 
-    # ================================
-    # 🔥 BLOQUE SEGURO PARA REBOTES
-    # (NO toca el código, NO altera nada)
-    # ================================
-    # Ignorar lecturas muy cortas del lector
-    if len(codigo) < 4:
+    if codigo.isdigit() and len(codigo) < 5:
         return jsonify({"partial": True}), 200
-    # ================================
-    # FIN — NO SE MODIFICA "codigo"
-    # ================================
 
-    # Buscar herramienta
     herramienta = Herramienta.query.filter_by(codigo=codigo).first()
     if herramienta:
         return jsonify({"tipo": "herramienta", "id": herramienta.id})
 
-    # Buscar mecánico
     mecanico = Mecanico.query.filter_by(codigo=codigo).first()
     if mecanico:
         return jsonify({"tipo": "mecanico", "id": mecanico.id})
 
-    # Validaciones según tipo
     if es_codigo_herramienta(codigo):
         return jsonify({"error": "Herramienta no registrada."}), 404
 
