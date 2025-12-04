@@ -65,25 +65,14 @@ def scan_code():
         return jsonify({"error": "Código vacío"}), 400
 
     # ================================
-    #   🔥 NUEVO: Filtrar rebotes
+    # 🔥 BLOQUE SEGURO PARA REBOTES
+    # (NO toca el código, NO altera nada)
     # ================================
-    # Filtrar SOLO números
-    solo_digitos = "".join([c for c in codigo if c.isdigit()])
-
-    # Ignorar lecturas incompletas del lector
-    if len(solo_digitos) < 5:
+    # Ignorar lecturas muy cortas del lector
+    if len(codigo) < 4:
         return jsonify({"partial": True}), 200
-
-    # Si el lector manda más de 5 dígitos (doble lectura), cortar
-    if len(solo_digitos) > 5:
-        solo_digitos = solo_digitos[:5]
-
-    # Sobrescribir código final
-    codigo = solo_digitos
-
-    print("DEBUG — FINAL:", repr(codigo))
     # ================================
-    #   FIN DEL BLOQUE NUEVO
+    # FIN — NO SE MODIFICA "codigo"
     # ================================
 
     # Buscar herramienta
