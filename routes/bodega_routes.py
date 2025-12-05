@@ -11,15 +11,15 @@ from utils.validators import (
 )
 from utils.security import update_last_activity
 from datetime import datetime
-import pytz  # zona horaria CR
+import pytz
 from pytz import timezone, utc
 
 bodega_bp = Blueprint("bodega", __name__, url_prefix="/bodega")
 
 
-# ───────────────────────────────────────────────
-#  PANTALLA PRINCIPAL DE BODEGA
-# ───────────────────────────────────────────────
+# ============================================================
+#   PANTALLA PRINCIPAL DE BODEGA
+# ============================================================
 @bodega_bp.route("/")
 @login_required
 def bodega():
@@ -27,16 +27,11 @@ def bodega():
 
     cr = timezone("America/Costa_Rica")
 
-    # ✅ AHORA: disponibles por cantidad, no por estado
-    herramientas_disponibles = Herramienta.query.filter(
-        Herramienta.cantidad_disponible > 0
-    ).all()
-
+    herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
     prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
 
     ahora_cr = datetime.utcnow().replace(tzinfo=utc).astimezone(cr)
 
-    # Convertir fechas Y calcular minutos
     for p in prestamos_activos:
         if p.fecha_prestamo:
             hora_cr = p.fecha_prestamo.replace(tzinfo=utc).astimezone(cr)
@@ -51,24 +46,24 @@ def bodega():
     )
 
 
-# ───────────────────────────────────────────────
+# ============================================================
 #   API PARA ESCANEO
-# ───────────────────────────────────────────────
+# ============================================================
 @bodega_bp.route("/scan", methods=["POST"])
 @login_required
 def scan_code():
     update_last_activity()
-    
-    codigo_raw = request.json.get("codigo", "")
-    codigo = limpiar_codigo(request.json.get("codigo", ""))
 
-    print("DEBUG — RAW:", repr(request.json.get("codigo", "")))
-    print("DEBUG — CLEAN:", repr(codigo))
+    codigo_raw = request.json.get("codigo", "")
+    codigo = limpiar_codigo(codigo_raw)
+
+    print("DEBUG RAW:", repr(codigo_raw))
+    print("DEBUG CLEAN:", repr(codigo))
 
     if not codigo:
         return jsonify({"error": "Código vacío"}), 400
 
-    # Ignorar lecturas incompletas (lector mandando 1 → 18 → 182...)
+    # Ignorar lecturas incompletas del lector
     if codigo.isdigit() and len(codigo) < 5:
         return jsonify({"partial": True}), 200
 
@@ -89,10 +84,9 @@ def scan_code():
     return jsonify({"error": "Código no reconocido."}), 400
 
 
-# ───────────────────────────────────────────────
-#   PRESTAR HERRAMIENTA
-#   (ahora usando cantidad_disponible)
-# ───────────────────────────────────────────────
+# ============================================================
+#   PRESTAR HERRAMIENTA (FLUJO ORIGINAL)
+# ============================================================
 @bodega_bp.route("/prestar", methods=["POST"])
 @login_required
 def prestar_herramienta():
@@ -107,27 +101,17 @@ def prestar_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
-    # ✅ AHORA: se valida por stock
-    if not herramienta.esta_disponible():
-        return jsonify({"error": "No hay unidades disponibles de esta herramienta."}), 400
+    if herramienta.estado == "Prestada":
+        return jsonify({"error": "Esta herramienta ya está prestada."}), 400
 
-    # Crear préstamo (1 unidad)
     prestamo = Prestamo(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
         fecha_prestamo=datetime.utcnow(),
-        estado="Abierto",
-        cantidad=1
+        estado="Abierto"
     )
 
-    # Descontar una unidad disponible
-    herramienta.prestar_unidad()
-
-    # Opcional: mantener estado para compatibilidad visual
-    if herramienta.cantidad_disponible == 0:
-        herramienta.estado = "Prestada"
-    else:
-        herramienta.estado = "Disponible"
+    herramienta.estado = "Prestada"
 
     db.session.add(prestamo)
     db.session.commit()
@@ -138,10 +122,9 @@ def prestar_herramienta():
     })
 
 
-# ───────────────────────────────────────────────
-#   DEVOLVER HERRAMIENTA
-#   (sumando cantidad_disponible)
-# ───────────────────────────────────────────────
+# ============================================================
+#   DEVOLVER HERRAMIENTA (FLUJO ORIGINAL)
+# ============================================================
 @bodega_bp.route("/devolver", methods=["POST"])
 @login_required
 def devolver_herramienta():
@@ -165,13 +148,8 @@ def devolver_herramienta():
     if not prestamo:
         return jsonify({"error": "Esta herramienta no está registrada como prestada a este mecánico."}), 400
 
-    # Cerrar préstamo y sumar una unidad disponible
     prestamo.cerrar_prestamo()
-    herramienta.devolver_unidad()
-
-    # Si hay al menos una disponible, estado visible = Disponible
-    if herramienta.cantidad_disponible > 0:
-        herramienta.estado = "Disponible"
+    herramienta.estado = "Disponible"
 
     db.session.commit()
 
@@ -181,9 +159,9 @@ def devolver_herramienta():
     })
 
 
-# ───────────────────────────────────────────────
-#   API - ESTADO DE BODEGA (HORA CR)
-# ───────────────────────────────────────────────
+# ============================================================
+#   API ESTADO DE BODEGA (FLUJO ORIGINAL)
+# ============================================================
 @bodega_bp.route("/estado", methods=["GET"])
 @login_required
 def estado_bodega():
@@ -192,21 +170,15 @@ def estado_bodega():
     tz_cr = pytz.timezone("America/Costa_Rica")
     ahora_cr = datetime.now(tz_cr)
 
-    # ✅ Disponibles: herramientas con stock
     disponibles = [{
         "id": h.id,
         "nombre": h.nombre,
         "codigo": h.codigo,
-        "cantidad_total": h.cantidad_total,
-        "cantidad_disponible": h.cantidad_disponible
-    } for h in Herramienta.query.filter(Herramienta.cantidad_disponible > 0).all()]
+    } for h in Herramienta.query.filter_by(estado="Disponible").all()]
 
     prestadas = []
     for p in Prestamo.query.filter_by(estado="Abierto").all():
-
-        # Convertir fecha UTC de la base → hora Costa Rica
         fecha_prestamo_cr = p.fecha_prestamo.replace(tzinfo=pytz.utc).astimezone(tz_cr)
-
         minutos = int((ahora_cr - fecha_prestamo_cr).total_seconds() // 60)
 
         prestadas.append({
