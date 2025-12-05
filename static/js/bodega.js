@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let herramientaID = null;
     let mecanicoID = null;
 
-    // Mantener foco constante
+    // Auto-focus permanente
     setInterval(() => input.focus(), 500);
 
     input.addEventListener("input", async () => {
@@ -22,19 +22,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.error) {
+            // No molestamos con alert para errores de código
             console.warn("SCAN ERROR:", data.error);
             input.value = "";
             return;
         }
 
-        // Identificar tipo de código escaneado
         if (data.tipo === "herramienta") {
             herramientaID = data.id;
         } else if (data.tipo === "mecanico") {
             mecanicoID = data.id;
         }
 
-        // Cuando ya tenemos ambos → procesar movimiento
+        // Si ya tenemos ambos → procesar
         if (herramientaID && mecanicoID) {
             procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
@@ -43,18 +43,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         input.value = "";
     });
-});
 
+});
 
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
-    // Consultar estado de bodega
+    // ¿La herramienta está prestada?
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
-    // Detectar si la herramienta está prestada (al menos 1 préstamo activo)
-    const estaPrestada = est.prestadas.some(p => p.herramienta_id === herramientaID);
+    const estaPrestada = est.prestadas.some(p => p.id === herramientaID);
 
     const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
 
@@ -76,9 +75,9 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
 
     alert(data.mensaje);
 
+    // Actualizar tablas
     actualizarTablas();
 }
-
 
 // REFRESCAR LISTAS AUTOMÁTICAMENTE
 async function actualizarTablas() {
@@ -88,29 +87,20 @@ async function actualizarTablas() {
     const tablaDisp = document.getElementById("tablaDisponibles");
     const tablaPrest = document.getElementById("tablaPrestadas");
 
-    // ============================
-    // TABLA DE DISPONIBLES
-    // ============================
     tablaDisp.innerHTML = "";
     data.disponibles.forEach(h => {
         tablaDisp.innerHTML += `
             <tr>
                 <td>${h.nombre}</td>
                 <td>${h.codigo}</td>
-                <td>${h.cantidad_disponible} / ${h.cantidad_total}</td>
                 <td><span class="badge badge-disponible">Disponible</span></td>
             </tr>`;
     });
 
-
-    // ============================
-    // TABLA DE PRESTADAS
-    // (AQUÍ VA EL CAMBIO IMPORTANTE)
-    // ============================
     tablaPrest.innerHTML = "";
     data.prestadas.forEach(p => {
         tablaPrest.innerHTML += `
-            <tr data-herramienta="${p.id}" data-mecanico="${p.mecanico_id}">
+            <tr>
                 <td>${p.nombre}</td>
                 <td>${p.codigo}</td>
                 <td>${p.mecanico}</td>
@@ -118,5 +108,4 @@ async function actualizarTablas() {
                 <td><span class="badge badge-prestada">Prestada</span></td>
             </tr>`;
     });
-
 }
