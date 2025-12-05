@@ -13,8 +13,12 @@ class Prestamo(db.Model):
     fecha_devolucion = db.Column(db.DateTime, nullable=True)
 
     tiempo_uso = db.Column(db.Integer, nullable=True)  # tiempo total en minutos
-    estado = db.Column(db.String(20), nullable=False, default="Abierto")  
+
+    estado = db.Column(db.String(20), nullable=False, default="Abierto")
     # Estados: Abierto / Cerrado
+
+    # 🔥 NUEVO — Cantidades manejadas correctamente
+    cantidad = db.Column(db.Integer, nullable=False, default=1)
 
     # Relaciones
     herramienta = db.relationship("Herramienta", backref="prestamos", lazy=True)
@@ -23,5 +27,5 @@ class Prestamo(db.Model):
     def cerrar_prestamo(self):
         self.fecha_devolucion = datetime.utcnow()
         diff = self.fecha_devolucion - self.fecha_prestamo
-        self.tiempo_uso = int(diff.total_seconds() // 60)  # minutos
+        self.tiempo_uso = int(diff.total_seconds() // 60)
         self.estado = "Cerrado"

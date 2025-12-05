@@ -34,9 +34,15 @@ def crear_herramienta():
 
     nombre = request.form.get("nombre")
     codigo = limpiar_codigo(request.form.get("codigo"))
+    cantidad = request.form.get("cantidad", type=int)
 
-    if not nombre or not codigo:
-        flash("Nombre y código son obligatorios.", "error")
+    # ⚠️ Corrección única: evitar que "0" o "" rompan la validación
+    if not nombre or not codigo or cantidad is None:
+        flash("Nombre, código y cantidad son obligatorios.", "error")
+        return redirect(url_for("herramientas.lista_herramientas"))
+
+    if cantidad <= 0:
+        flash("La cantidad debe ser mayor a 0.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
 
     # Código único
@@ -47,7 +53,8 @@ def crear_herramienta():
     nueva = Herramienta(
         nombre=nombre,
         codigo=codigo,
-        estado="Disponible"
+        cantidad_total=cantidad,
+        cantidad_disponible=cantidad
     )
 
     db.session.add(nueva)
@@ -70,21 +77,38 @@ def editar_herramienta(id):
 
     nombre = request.form.get("nombre")
     codigo = request.form.get("codigo")
+    cantidad_total = request.form.get("cantidad_total", type=int)
 
-    if not nombre or not codigo:
-        flash("Nombre y código son obligatorios.", "error")
+    # ⚠️ Corrección única
+    if not nombre or not codigo or cantidad_total is None:
+        flash("Nombre, código y cantidad total son obligatorios.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
 
-    # Si está prestada → no permitir cambios de código
-    if herramienta.estado == "Prestada":
-        flash("No es posible modificar una herramienta que está prestada.", "error")
+    if cantidad_total <= 0:
+        flash("La cantidad total debe ser mayor a 0.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
 
-    # Validar que el nuevo código no esté en otra herramienta
-    existe = Herramienta.query.filter(Herramienta.codigo == codigo, Herramienta.id != id).first()
+    # Validar código único en otro registro
+    existe = Herramienta.query.filter(
+        Herramienta.codigo == codigo,
+        Herramienta.id != id
+    ).first()
+
     if existe:
         flash("Este código ya está registrado por otra herramienta.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
+
+    # Ajustar disponibilidad sin exceder
+    diferencia = cantidad_total - herramienta.cantidad_total
+    herramienta.cantidad_total = cantidad_total
+
+    nueva_disponible = herramienta.cantidad_disponible + diferencia
+    if nueva_disponible < 0:
+        nueva_disponible = 0
+    if nueva_disponible > cantidad_total:
+        nueva_disponible = cantidad_total
+
+    herramienta.cantidad_disponible = nueva_disponible
 
     herramienta.nombre = nombre
     herramienta.codigo = codigo
@@ -106,12 +130,7 @@ def eliminar_herramienta(id):
 
     herramienta = Herramienta.query.get_or_404(id)
 
-    # Si está prestada → no se elimina
-    if herramienta.estado == "Prestada":
-        flash("No se puede eliminar una herramienta que está prestada.", "error")
-        return redirect(url_for("herramientas.lista_herramientas"))
-
-    # Si tiene historial → no se elimina
+    # No eliminar si tiene historial
     if len(herramienta.prestamos) > 0:
         flash("Esta herramienta tiene historial de uso. No se puede eliminar.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))

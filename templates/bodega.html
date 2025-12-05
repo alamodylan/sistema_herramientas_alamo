@@ -15,7 +15,8 @@
         <tr>
             <th>Herramienta</th>
             <th>Código</th>
-            <th>Estado</th>
+            <th>Total</th>
+            <th>Disponible</th>
         </tr>
     </thead>
     <tbody id="tablaDisponibles">
@@ -23,7 +24,8 @@
         <tr>
             <td>{{ h.nombre }}</td>
             <td>{{ h.codigo }}</td>
-            <td><span class="badge badge-disponible">Disponible</span></td>
+            <td>{{ h.cantidad_total }}</td>
+            <td>{{ h.cantidad_disponible }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -48,13 +50,7 @@
             <td>{{ p.herramienta.nombre }}</td>
             <td>{{ p.herramienta.codigo }}</td>
             <td>{{ p.mecanico.nombre }}</td>
-            <td>
-                {% if p.fecha_prestamo_cr %}
-                    {{ p.minutos }}
-                {% else %}
-                    0
-                {% endif %}
-            </td>
+            <td>{{ p.minutos }}</td>
             <td><span class="badge badge-prestada">Prestada</span></td>
         </tr>
         {% endfor %}

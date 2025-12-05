@@ -49,14 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
-    const estado = await fetch("/bodega/estado");
-    const est = await estado.json();
-
-    const estaPrestada = est.prestadas.some(p => p.id === herramientaID);
-
-    const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
-
-    const res = await fetch(endpoint, {
+    const res = await fetch("/bodega/movimiento", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
@@ -68,13 +61,14 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
     const data = await res.json();
 
     if (data.error) {
-        console.warn("MOV ERROR:", data.error);
+        alert(data.error);
         return;
     }
 
-    // ❌ Quitamos alert
-    console.log(data.mensaje);
+    // Mantengo el comportamiento actual: muestra el mensaje
+    alert(data.mensaje);
 
+    // Actualizar tablas
     actualizarTablas();
 }
 
@@ -107,4 +101,5 @@ async function actualizarTablas() {
                 <td><span class="badge badge-prestada">Prestada</span></td>
             </tr>`;
     });
+
 }

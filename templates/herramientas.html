@@ -14,7 +14,8 @@
         <tr>
             <th>Nombre</th>
             <th>Código</th>
-            <th>Estado</th>
+            <th>Total</th>
+            <th>Disponible</th>
             {% if current_user.es_admin() %}
             <th>Acciones</th>
             {% endif %}
@@ -25,15 +26,32 @@
         <tr>
             <td>{{ h.nombre }}</td>
             <td>{{ h.codigo }}</td>
-            <td>{{ h.estado }}</td>
+            <td>{{ h.cantidad_total }}</td>
+            <td>{{ h.cantidad_disponible }}</td>
 
             {% if current_user.es_admin() %}
             <td>
-                <form action="{{ url_for('herramientas.eliminar_herramienta', id=h.id) }}" method="POST">
+
+                <!-- BOTÓN EDITAR -->
+                <button class="btn"
+                    onclick="abrirModalEditar(
+                        '{{h.id}}',
+                        '{{h.nombre}}',
+                        '{{h.codigo}}',
+                        '{{h.cantidad_total}}',
+                        '{{h.cantidad_disponible}}'
+                    )">
+                    Editar
+                </button>
+
+                <!-- BOTÓN ELIMINAR -->
+                <form action="{{ url_for('herramientas.eliminar_herramienta', id=h.id) }}"
+                      method="POST" style="margin-top:5px;">
                     <button class="btn-danger" onclick="return confirm('¿Eliminar herramienta?')">
                         Eliminar
                     </button>
                 </form>
+
             </td>
             {% endif %}
         </tr>
@@ -42,5 +60,6 @@
 </table>
 
 {% include 'modals/modal_add_herramienta.html' %}
+{% include 'modals/modal_edit_herramienta.html' %}
 
 {% endblock %}

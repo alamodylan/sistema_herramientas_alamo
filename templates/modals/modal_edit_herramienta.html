@@ -1,0 +1,46 @@
+<!-- MODAL EDITAR HERRAMIENTA -->
+<div id="modalEditHerr" class="modal" style="display:none;">
+    <div class="container" style="max-width:400px;background:white;border-radius:10px;padding:20px;position:relative;top:20vh;">
+        
+        <h2>Editar Herramienta</h2>
+
+        <form id="formEditHerr" method="POST">
+
+            <label>Nombre de la herramienta</label>
+            <input type="text" name="nombre" id="edit_nombre" required>
+
+            <label>Código (numérico – código de barras)</label>
+            <input type="text" name="codigo" id="edit_codigo" required>
+
+            <label>Cantidad total</label>
+            <input type="number" name="cantidad_total" id="edit_cantidad_total" min="1" required>
+
+            <!-- Muestra la cantidad disponible -->
+            <label>Cantidad disponible (solo lectura)</label>
+            <input type="number" id="edit_cantidad_disponible" readonly>
+
+            <button class="btn" type="submit">Guardar Cambios</button>
+        </form>
+
+        <br>
+        <button class="btn-danger" onclick="document.getElementById('modalEditHerr').style.display='none'">
+            Cerrar
+        </button>
+
+    </div>
+</div>
+
+<script>
+function abrirModalEditar(id, nombre, codigo, total, disponible) {
+    document.getElementById("edit_nombre").value = nombre;
+    document.getElementById("edit_codigo").value = codigo;
+    document.getElementById("edit_cantidad_total").value = total;
+    document.getElementById("edit_cantidad_disponible").value = disponible;
+
+    // Actualizar acción del formulario
+    document.getElementById("formEditHerr").action =
+        `/herramientas/editar/${id}`;
+
+    document.getElementById("modalEditHerr").style.display = "block";
+}
+</script>

@@ -45,5 +45,25 @@
 
     {% block scripts %}{% endblock %}
 
+    <!-- =================================================== -->
+    <!-- FUNCIÓN PARA ABRIR MODAL DE EDITAR HERRAMIENTA      -->
+    <!-- =================================================== -->
+    <script>
+    function abrirModalEditar(id, nombre, codigo, cantidad_total, cantidad_disponible) {
+
+        // Asignar los valores al modal
+        document.getElementById("edit_nombre").value = nombre;
+        document.getElementById("edit_codigo").value = codigo;
+        document.getElementById("edit_cantidad_total").value = cantidad_total;
+
+        // Cambiar la acción del formulario según el ID
+        const form = document.getElementById("formEditHerr");
+        form.action = "/herramientas/editar/" + id;
+
+        // Mostrar el modal
+        document.getElementById('modalEditHerr').style.display = 'block';
+    }
+    </script>
+
 </body>
 </html>
