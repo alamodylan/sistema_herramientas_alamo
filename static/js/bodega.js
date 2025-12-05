@@ -49,7 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
 
-    const res = await fetch("/bodega/movimiento", {
+    // Consultar estado de bodega
+    const estado = await fetch("/bodega/estado");
+    const est = await estado.json();
+
+    // Detectar si la herramienta está prestada (al menos 1 préstamo activo)
+    const estaPrestada = est.prestadas.some(p => p.herramienta_id === herramientaID);
+
+    const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
+
+    const res = await fetch(endpoint, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
@@ -65,10 +74,8 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
         return;
     }
 
-    // Mantengo alerta porque así lo usabas
     alert(data.mensaje);
 
-    // Actualizar tablas después del movimiento
     actualizarTablas();
 }
 
