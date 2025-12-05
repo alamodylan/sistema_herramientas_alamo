@@ -265,6 +265,7 @@ def estado_bodega():
 
         prestadas.append({
             "id": p.herramienta.id,
+            "mecanico_id": p.mecanico.id,   # ← ★ CAMBIO AGREGADO ★
             "nombre": p.herramienta.nombre,
             "codigo": p.herramienta.codigo,
             "mecanico": p.mecanico.nombre,

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let herramientaID = null;
     let mecanicoID = null;
 
-    // Auto-focus permanente
+    // Mantener foco constante
     setInterval(() => input.focus(), 500);
 
     input.addEventListener("input", async () => {
@@ -22,19 +22,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.error) {
-            // ❌ Quitamos alert
             console.warn("SCAN ERROR:", data.error);
             input.value = "";
             return;
         }
 
+        // Identificar tipo de código escaneado
         if (data.tipo === "herramienta") {
             herramientaID = data.id;
         } else if (data.tipo === "mecanico") {
             mecanicoID = data.id;
         }
 
-        // Si ya tenemos ambos → procesar
+        // Cuando ya tenemos ambos → procesar movimiento
         if (herramientaID && mecanicoID) {
             procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
@@ -43,8 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         input.value = "";
     });
-
 });
+
 
 // PRESTAR / DEVOLVER AUTOMÁTICO
 async function procesarMovimiento(herramientaID, mecanicoID) {
@@ -65,12 +65,13 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
         return;
     }
 
-    // Mantengo el comportamiento actual: muestra el mensaje
+    // Mantengo alerta porque así lo usabas
     alert(data.mensaje);
 
-    // Actualizar tablas
+    // Actualizar tablas después del movimiento
     actualizarTablas();
 }
+
 
 // REFRESCAR LISTAS AUTOMÁTICAMENTE
 async function actualizarTablas() {
@@ -80,20 +81,29 @@ async function actualizarTablas() {
     const tablaDisp = document.getElementById("tablaDisponibles");
     const tablaPrest = document.getElementById("tablaPrestadas");
 
+    // ============================
+    // TABLA DE DISPONIBLES
+    // ============================
     tablaDisp.innerHTML = "";
     data.disponibles.forEach(h => {
         tablaDisp.innerHTML += `
             <tr>
                 <td>${h.nombre}</td>
                 <td>${h.codigo}</td>
+                <td>${h.cantidad_disponible} / ${h.cantidad_total}</td>
                 <td><span class="badge badge-disponible">Disponible</span></td>
             </tr>`;
     });
 
+
+    // ============================
+    // TABLA DE PRESTADAS
+    // (AQUÍ VA EL CAMBIO IMPORTANTE)
+    // ============================
     tablaPrest.innerHTML = "";
     data.prestadas.forEach(p => {
         tablaPrest.innerHTML += `
-            <tr>
+            <tr data-herramienta="${p.id}" data-mecanico="${p.mecanico_id}">
                 <td>${p.nombre}</td>
                 <td>${p.codigo}</td>
                 <td>${p.mecanico}</td>
