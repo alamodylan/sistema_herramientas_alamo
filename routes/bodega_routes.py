@@ -105,28 +105,27 @@ def prestar_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
-    # ✅ Verificamos disponibilidad por cantidad
+    # 👉 CONTROL REAL: ¿hay una unidad disponible?
     if not herramienta.esta_disponible():
         return jsonify({"error": "No hay unidades disponibles de esta herramienta."}), 400
 
-    # Crear préstamo (una unidad)
+    # Crear préstamo
     prestamo = Prestamo(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
-        fecha_prestamo=datetime.utcnow(),
-        estado="Abierto",
         cantidad=1,
+        fecha_prestamo=datetime.utcnow(),
+        estado="Abierto"
     )
 
-    # Actualizar inventario de la herramienta
-    herramienta.prestar_unidad()
+    herramienta.prestar_unidad()  # 🔥 resta cantidad_disponible
 
     db.session.add(prestamo)
     db.session.commit()
 
     return jsonify({
         "ok": True,
-        "mensaje": f"Herramienta {herramienta.nombre} prestada a {mecanico.nombre}"
+        "mensaje": f"{herramienta.nombre} prestada a {mecanico.nombre}"
     })
 
 
@@ -147,7 +146,7 @@ def devolver_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
-    # Buscamos un préstamo ABIERTO para esa herramienta y ese mecánico
+    # Buscar préstamo activo
     prestamo = Prestamo.query.filter_by(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
@@ -155,17 +154,19 @@ def devolver_herramienta():
     ).first()
 
     if not prestamo:
-        return jsonify({"error": "Esta herramienta no está registrada como prestada a este mecánico."}), 400
+        return jsonify({"error": "Esta herramienta no está prestada a este mecánico."}), 400
 
-    # Cerrar préstamo y devolver una unidad al inventario
+    # Cerrar préstamo
     prestamo.cerrar_prestamo()
+
+    # Devolver UNA unidad
     herramienta.devolver_unidad()
 
     db.session.commit()
 
     return jsonify({
         "ok": True,
-        "mensaje": f"Herramienta {herramienta.nombre} devuelta por {mecanico.nombre}"
+        "mensaje": f"{herramienta.nombre} devuelta por {mecanico.nombre}"
     })
 
 
@@ -180,14 +181,13 @@ def estado_bodega():
     tz_cr = pytz.timezone("America/Costa_Rica")
     ahora_cr = datetime.now(tz_cr)
 
-    # ✅ Disponibles según cantidad_disponible
     disponibles = [{
         "id": h.id,
         "nombre": h.nombre,
         "codigo": h.codigo,
         "cantidad_total": h.cantidad_total,
-        "cantidad_disponible": h.cantidad_disponible,
-    } for h in Herramienta.query.filter(Herramienta.cantidad_disponible > 0).all()]
+        "cantidad_disponible": h.cantidad_disponible
+    } for h in Herramienta.query.all()]
 
     prestadas = []
     for p in Prestamo.query.filter_by(estado="Abierto").all():
@@ -195,13 +195,7 @@ def estado_bodega():
         minutos = int((ahora_cr - fecha_prestamo_cr).total_seconds() // 60)
 
         prestadas.append({
-            # Para compatibilidad con el JS antiguo:
-            "id": p.herramienta.id,  # id de herramienta
-
-            # Nuevos campos para lógica por par herramienta-mecánico:
-            "herramienta_id": p.id_herramienta,
-            "mecanico_id": p.id_mecanico,
-
+            "id": p.herramienta.id,
             "nombre": p.herramienta.nombre,
             "codigo": p.herramienta.codigo,
             "mecanico": p.mecanico.nombre,
