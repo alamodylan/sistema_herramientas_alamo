@@ -181,6 +181,7 @@ def estado_bodega():
     tz_cr = pytz.timezone("America/Costa_Rica")
     ahora_cr = datetime.now(tz_cr)
 
+    # Todas las herramientas (disponibles con cantidades)
     disponibles = [{
         "id": h.id,
         "nombre": h.nombre,
@@ -189,13 +190,15 @@ def estado_bodega():
         "cantidad_disponible": h.cantidad_disponible
     } for h in Herramienta.query.all()]
 
+    # Préstamos activos (uno por mecánico por herramienta)
     prestadas = []
     for p in Prestamo.query.filter_by(estado="Abierto").all():
         fecha_prestamo_cr = p.fecha_prestamo.replace(tzinfo=pytz.utc).astimezone(tz_cr)
         minutos = int((ahora_cr - fecha_prestamo_cr).total_seconds() // 60)
 
         prestadas.append({
-            "id": p.herramienta.id,
+            "herramienta_id": p.herramienta.id,
+            "mecanico_id": p.mecanico.id,
             "nombre": p.herramienta.nombre,
             "codigo": p.herramienta.codigo,
             "mecanico": p.mecanico.nombre,

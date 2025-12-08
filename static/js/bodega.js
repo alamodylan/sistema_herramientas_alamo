@@ -54,7 +54,7 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
-    // ✅ Ahora verificamos si hay préstamo ABIERTO para este par
+    // Detectamos si ESTE mecánico ya tiene ESTA herramienta prestada
     const tienePrestamo = est.prestadas.some(
         p => p.herramienta_id === herramientaID && p.mecanico_id === mecanicoID
     );
