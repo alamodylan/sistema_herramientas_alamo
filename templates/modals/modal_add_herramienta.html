@@ -1,28 +1,27 @@
-<!-- MODAL AGREGAR HERRAMIENTA -->
-<div id="modalAddHerr" class="modal" style="display:none;">
-    <div class="container" style="max-width:400px;background:white;border-radius:10px;padding:20px;position:relative;top:20vh;">
-        
+<div id="modalAddHerr" class="modal">
+    <div class="modal-content">
+
         <h2>Agregar Herramienta</h2>
 
         <form action="{{ url_for('herramientas.crear_herramienta') }}" method="POST">
 
-            <label>Nombre de la herramienta</label>
+            <label>Nombre:</label>
             <input type="text" name="nombre" required>
 
-            <label>Código (numérico – código de barras existente)</label>
+            <label>Código:</label>
             <input type="text" name="codigo" required>
 
-            <!-- 🎯 NUEVO: Cantidad total -->
-            <label>Cantidad total</label>
-            <input type="number" name="cantidad_total" min="1" value="1" required>
+            <label>Cantidad Total:</label>
+            <input type="number" name="cantidad" min="1" required>
 
-            <button class="btn" type="submit">Guardar</button>
+            <div class="modal-actions">
+                <button type="submit" class="btn">Guardar</button>
+                <button type="button" class="btn-secondary"
+                        onclick="document.getElementById('modalAddHerr').style.display='none'">
+                    Cancelar
+                </button>
+            </div>
         </form>
-
-        <br>
-        <button class="btn-danger" onclick="document.getElementById('modalAddHerr').style.display='none'">
-            Cerrar
-        </button>
 
     </div>
 </div>

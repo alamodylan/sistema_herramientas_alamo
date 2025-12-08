@@ -34,18 +34,21 @@ def crear_herramienta():
 
     nombre = request.form.get("nombre")
     codigo = limpiar_codigo(request.form.get("codigo"))
-    cantidad = request.form.get("cantidad", type=int)
+    cantidad = request.form.get("cantidad")
 
-    # ⚠️ Corrección única: evitar que "0" o "" rompan la validación
-    if not nombre or not codigo or cantidad is None:
+    if not nombre or not codigo or not cantidad:
         flash("Nombre, código y cantidad son obligatorios.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
 
-    if cantidad <= 0:
-        flash("La cantidad debe ser mayor a 0.", "error")
+    try:
+        cantidad = int(cantidad)
+        if cantidad <= 0:
+            raise ValueError()
+    except:
+        flash("La cantidad debe ser un número válido mayor a 0.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
 
-    # Código único
+    # Validar código único
     if Herramienta.query.filter_by(codigo=codigo).first():
         flash("El código ya está registrado en otra herramienta.", "error")
         return redirect(url_for("herramientas.lista_herramientas"))
