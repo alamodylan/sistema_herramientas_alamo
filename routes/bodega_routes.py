@@ -187,8 +187,8 @@ def estado_bodega():
         "nombre": h.nombre,
         "codigo": h.codigo,
         "cantidad_total": h.cantidad_total,
-        "cantidad_disponible": h.cantidad_disponible
-    } for h in Herramienta.query.all()]
+        "cantidad_disponible": h.cantidad_disponible,
+    } for h in Herramienta.query.filter(Herramienta.cantidad_disponible > 0).all()]
 
     # Préstamos activos (uno por mecánico por herramienta)
     prestadas = []
