@@ -12,49 +12,51 @@ function showToast(msg, tipo="ok") {
 }
 
 // SCRIPT PRINCIPAL DE BODEGA
-document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("scanInput");
-    input.focus();
+input.addEventListener("input", async () => {
+    const codigo = input.value.trim();
+    if (!codigo) return;
 
-    let herramientaID = null;
-    let mecanicoID = null;
+    const res = await fetch("/bodega/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo })
+    });
 
-    // Mantener foco en el input
-    setInterval(() => input.focus(), 500);
+    const data = await res.json();
 
-    input.addEventListener("input", async () => {
-        const codigo = input.value.trim();
-        if (!codigo) return;
-
-        const res = await fetch("/bodega/scan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ codigo })
-        });
-
-        const data = await res.json();
-
-        if (data.error) {
-            showToast(data.error, "error");
+    // Validación del orden de escaneo
+    if (!herramientaID) {
+        // PRIMER código debe ser herramienta
+        if (data.tipo !== "herramienta") {
+            showToast("El primer código debe ser una herramienta.", "error");
             input.value = "";
             return;
         }
-
-        if (data.tipo === "herramienta") {
-            herramientaID = data.id;
-        } else if (data.tipo === "mecanico") {
-            mecanicoID = data.id;
+    } 
+    else if (!mecanicoID) {
+        // SEGUNDO código debe ser mecánico
+        if (data.tipo !== "mecanico") {
+            showToast("El segundo código debe ser un mecánico.", "error");
+            input.value = "";
+            return;
         }
+    }
 
-        // Cuando ya tenemos herramienta + mecánico, procesamos el movimiento
-        if (herramientaID && mecanicoID) {
-            await procesarMovimiento(herramientaID, mecanicoID);
-            herramientaID = null;
-            mecanicoID = null;
-        }
+    // Asignación de valores
+    if (data.tipo === "herramienta") {
+        herramientaID = data.id;
+    } else if (data.tipo === "mecanico") {
+        mecanicoID = data.id;
+    }
 
-        input.value = "";
-    });
+    // Ambos escaneados → procesar
+    if (herramientaID && mecanicoID) {
+        await procesarMovimiento(herramientaID, mecanicoID);
+        herramientaID = null;
+        mecanicoID = null;
+    }
+
+    input.value = "";
 });
 
 
