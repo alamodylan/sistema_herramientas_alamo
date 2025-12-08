@@ -24,42 +24,54 @@ input.addEventListener("input", async () => {
 
     const data = await res.json();
 
-    // Si hay error real del backend (código no existe)
+    // Si el código realmente NO existe en DB
     if (data.error) {
-        showToast(data.error, "error");
+        // ❗ SOLO mostrar error si NO había herramienta escaneada aún
+        //     (es decir, si este es el PRIMER escaneo)
+        if (!herramientaID) {
+            showToast(data.error, "error");
+        }
+
         input.value = "";
         return;
     }
 
-    // 1) Asignar primero según el tipo
+    // ===============================
+    // ASIGNACIÓN DE CÓDIGOS LEÍDOS
+    // ===============================
     if (data.tipo === "herramienta") {
         herramientaID = data.id;
-    } 
-    else if (data.tipo === "mecanico") {
+    } else if (data.tipo === "mecanico") {
         mecanicoID = data.id;
     }
 
-    // 2) Validación del orden DESPUÉS de asignar
+    // ===============================
+    // VALIDACIONES DE ORDEN
+    // ===============================
 
-    // Si hay mecánico sin haber herramienta primero
-    if (!herramientaID && mecanicoID) {
-        showToast("El primer código debe ser una herramienta.", "error");
+    // Caso: escanean mecánico primero (incorrecto)
+    if (mecanicoID && !herramientaID) {
+        showToast("Primero debe escanear una herramienta.", "error");
         mecanicoID = null;
         input.value = "";
         return;
     }
 
-    // Si ya hay herramienta, el segundo escaneo debe ser mecánico
+    // Caso: ya hay herramienta, pero el segundo código NO es un mecánico
     if (herramientaID && !mecanicoID && data.tipo !== "mecanico") {
-        showToast("El segundo código debe ser un mecánico.", "error");
+        showToast("Luego debe escanear el código del mecánico.", "error");
         herramientaID = null;
         input.value = "";
         return;
     }
 
-    // 3) Procesar préstamo/devolución solo si están ambos
+    // ===============================
+    // SI YA HAY HERRAMIENTA + MECÁNICO → PROCESAR
+    // ===============================
     if (herramientaID && mecanicoID) {
         await procesarMovimiento(herramientaID, mecanicoID);
+
+        // Reset para el siguiente ciclo de escaneo
         herramientaID = null;
         mecanicoID = null;
     }
