@@ -337,3 +337,112 @@ input, select {
 .tabla-mecanicos td:nth-child(5) {
     width: 15%;
 }
+/* ───────────────────────────────────────────────
+   TABLAS DE BODEGA — ALINEADAS Y BONITAS
+   ─────────────────────────────────────────────── */
+
+.section-box {
+    margin-bottom: 40px;
+}
+
+.tabla-bodega {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    table-layout: fixed;           /* Alineación perfecta */
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Encabezados */
+.tabla-bodega th {
+    background: #003566;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Celdas */
+.tabla-bodega td {
+    padding: 12px;
+    border-bottom: 1px solid #e3e6eb;
+    text-align: center;           /* ✔ Corrige la desalineación */
+    background: #f9fbff;
+}
+
+/* Columnas proporcionadas */
+.tabla-bodega th:nth-child(1),
+.tabla-bodega td:nth-child(1) {
+    width: 32%;
+}
+.tabla-bodega th:nth-child(2),
+.tabla-bodega td:nth-child(2) {
+    width: 22%;
+}
+.tabla-bodega th:nth-child(3),
+.tabla-bodega td:nth-child(3) {
+    width: 23%;
+}
+.tabla-bodega th:nth-child(4),
+.tabla-bodega td:nth-child(4) {
+    width: 23%;
+}
+.tabla-bodega th:nth-child(5),
+.tabla-bodega td:nth-child(5) {
+    width: 20%;
+}
+/* ───────────────────────────────────────────────
+   TABLA DE HERRAMIENTAS — Alineada y profesional
+   ─────────────────────────────────────────────── */
+
+.tabla-herramientas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.tabla-herramientas th {
+    background: #003566;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.tabla-herramientas td {
+    padding: 12px;
+    border-bottom: 1px solid #e3e6eb;
+    text-align: center;
+    background: #f9fbff;
+}
+
+/* Columnas perfectamente alineadas */
+.tabla-herramientas th:nth-child(1),
+.tabla-herramientas td:nth-child(1) {
+    width: 30%;
+}
+
+.tabla-herramientas th:nth-child(2),
+.tabla-herramientas td:nth-child(2) {
+    width: 20%;
+}
+
+.tabla-herramientas th:nth-child(3),
+.tabla-herramientas td:nth-child(3),
+.tabla-herramientas th:nth-child(4),
+.tabla-herramientas td:nth-child(4) {
+    width: 15%;
+}
+
+.tabla-herramientas th:nth-child(5),
+.tabla-herramientas td:nth-child(5) {
+    width: 20%;
+}
