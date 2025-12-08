@@ -24,32 +24,40 @@ input.addEventListener("input", async () => {
 
     const data = await res.json();
 
-    // Validación del orden de escaneo
-    if (!herramientaID) {
-        // PRIMER código debe ser herramienta
-        if (data.tipo !== "herramienta") {
-            showToast("El primer código debe ser una herramienta.", "error");
-            input.value = "";
-            return;
-        }
-    } 
-    else if (!mecanicoID) {
-        // SEGUNDO código debe ser mecánico
-        if (data.tipo !== "mecanico") {
-            showToast("El segundo código debe ser un mecánico.", "error");
-            input.value = "";
-            return;
-        }
+    // Si hay error real del backend (código no existe)
+    if (data.error) {
+        showToast(data.error, "error");
+        input.value = "";
+        return;
     }
 
-    // Asignación de valores
+    // 1) Asignar primero según el tipo
     if (data.tipo === "herramienta") {
         herramientaID = data.id;
-    } else if (data.tipo === "mecanico") {
+    } 
+    else if (data.tipo === "mecanico") {
         mecanicoID = data.id;
     }
 
-    // Ambos escaneados → procesar
+    // 2) Validación del orden DESPUÉS de asignar
+
+    // Si hay mecánico sin haber herramienta primero
+    if (!herramientaID && mecanicoID) {
+        showToast("El primer código debe ser una herramienta.", "error");
+        mecanicoID = null;
+        input.value = "";
+        return;
+    }
+
+    // Si ya hay herramienta, el segundo escaneo debe ser mecánico
+    if (herramientaID && !mecanicoID && data.tipo !== "mecanico") {
+        showToast("El segundo código debe ser un mecánico.", "error");
+        herramientaID = null;
+        input.value = "";
+        return;
+    }
+
+    // 3) Procesar préstamo/devolución solo si están ambos
     if (herramientaID && mecanicoID) {
         await procesarMovimiento(herramientaID, mecanicoID);
         herramientaID = null;
