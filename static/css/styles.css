@@ -169,3 +169,171 @@ input, select {
 .navbar a:active {
     color: #dce6f5 !important;
 }
+/* FILTROS */
+.filtros-box {
+    background: #f1f4f8;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.btn-box {
+    display: flex;
+    align-items: end;
+}
+
+.tabla-historial td, .tabla-historial th {
+    text-align: center;
+}
+
+/* PAGINACIÓN */
+.paginacion {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+/* SECCIONES EN BODEGA */
+.section-box {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+/* H2 centrados y alineados */
+.section-box h2 {
+    margin: 0 0 10px 0;
+    font-size: 26px;
+    color: #003566;
+    text-align: left;
+    padding-left: 5px;
+}
+
+/* Alinear tabla y evitar que quede corrida */
+.tabla-bodega {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.tabla-bodega th {
+    background: #003566;
+    color: white;
+    text-align: center;
+}
+
+.tabla-bodega td {
+    background: #f9fbff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+}
+/* TABLA DE HISTORIAL */
+.tabla-historial {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed; /* 🔥 Evita columnas desalineadas */
+}
+
+.tabla-historial th {
+    background: #003566;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.tabla-historial td {
+    background: #f9fbff;
+    padding: 12px;
+    border-bottom: 1px solid #dcdcdc;
+    text-align: center;
+}
+
+/* Ajuste de anchos proporcionales */
+.tabla-historial th:nth-child(1),
+.tabla-historial td:nth-child(1) {
+    width: 22%;
+}
+
+.tabla-historial th:nth-child(2),
+.tabla-historial td:nth-child(2) {
+    width: 22%;
+}
+
+.tabla-historial th:nth-child(3),
+.tabla-historial td:nth-child(3) {
+    width: 18%;
+}
+
+.tabla-historial th:nth-child(4),
+.tabla-historial td:nth-child(4) {
+    width: 18%;
+}
+
+.tabla-historial th:nth-child(5),
+.tabla-historial td:nth-child(5) {
+    width: 20%;
+}
+
+/* PAGINACIÓN */
+.paginacion {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+/* ───────────────────────────────────────────────
+   TABLA DE MECÁNICOS
+   ─────────────────────────────────────────────── */
+
+.tabla-mecanicos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed; /* 🔥 Evita desalineaciones */
+}
+
+.tabla-mecanicos th {
+    background: #003566;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.tabla-mecanicos td {
+    background: #f9fbff;
+    padding: 12px;
+    border-bottom: 1px solid #dcdcdc;
+    text-align: center;
+}
+
+/* Proporción visual perfecta */
+.tabla-mecanicos th:nth-child(1),
+.tabla-mecanicos td:nth-child(1) {
+    width: 25%;
+}
+
+.tabla-mecanicos th:nth-child(2),
+.tabla-mecanicos td:nth-child(2) {
+    width: 15%;
+}
+
+.tabla-mecanicos th:nth-child(3),
+.tabla-mecanicos td:nth-child(3) {
+    width: 25%;
+}
+
+.tabla-mecanicos th:nth-child(4),
+.tabla-mecanicos td:nth-child(4) {
+    width: 20%;
+}
+
+.tabla-mecanicos th:nth-child(5),
+.tabla-mecanicos td:nth-child(5) {
+    width: 15%;
+}

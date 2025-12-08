@@ -1,38 +1,53 @@
 {% extends "layout.html" %}
 
 {% block contenido %}
+
 <h1>Historial de Préstamos</h1>
 
-<form method="GET">
-    <label>Mecánico</label>
-    <select name="mecanico">
-        <option value="">-- Todos --</option>
-        {% for m in mecanicos %}
-            <option value="{{ m.id }}" {% if filtros.mecanico == m.id|string %}selected{% endif %}>
-                {{ m.nombre }}
-            </option>
-        {% endfor %}
-    </select>
+<!-- FILTROS -->
+<div class="filtros-box">
+    <form method="GET" class="filtros-grid">
 
-    <label>Herramienta</label>
-    <select name="herramienta">
-        <option value="">-- Todas --</option>
-        {% for h in herramientas %}
-            <option value="{{ h.id }}" {% if filtros.herramienta == h.id|string %}selected{% endif %}>
-                {{ h.nombre }}
-            </option>
-        {% endfor %}
-    </select>
+        <div>
+            <label>Mecánico</label>
+            <select name="mecanico">
+                <option value="">-- Todos --</option>
+                {% for m in mecanicos %}
+                <option value="{{ m.id }}" {% if filtros.mecanico == m.id|string %}selected{% endif %}>
+                    {{ m.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <label>Fecha</label>
-    <input type="date" name="fecha" value="{{ filtros.fecha }}">
+        <div>
+            <label>Herramienta</label>
+            <select name="herramienta">
+                <option value="">-- Todas --</option>
+                {% for h in herramientas %}
+                <option value="{{ h.id }}" {% if filtros.herramienta == h.id|string %}selected{% endif %}>
+                    {{ h.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <button class="btn" type="submit">Filtrar</button>
-</form>
+        <div>
+            <label>Fecha</label>
+            <input type="date" name="fecha" value="{{ filtros.fecha }}">
+        </div>
+
+        <div class="btn-box">
+            <button class="btn" type="submit" style="width:100%;">Filtrar</button>
+        </div>
+
+    </form>
+</div>
 
 <hr>
 
-<table>
+<!-- TABLA -->
+<table class="tabla-historial">
     <thead>
         <tr>
             <th>Herramienta</th>
@@ -42,19 +57,22 @@
             <th>Tiempo de Uso</th>
         </tr>
     </thead>
+
     <tbody>
         {% for p in prestamos.items %}
         <tr>
             <td>{{ p.herramienta.nombre }}</td>
             <td>{{ p.mecanico.nombre }}</td>
             <td>{{ p.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</td>
+
             <td>
                 {% if p.fecha_devolucion %}
                     {{ p.fecha_devolucion.strftime('%d/%m/%Y %H:%M') }}
                 {% else %}
-                    En uso
+                    <span class="badge badge-prestada">En uso</span>
                 {% endif %}
             </td>
+
             <td>
                 {% if p.tiempo_uso %}
                     {{ p.tiempo_uso }} min
@@ -67,14 +85,14 @@
     </tbody>
 </table>
 
-<!-- PAGINADOR -->
-<div style="margin-top:20px;">
+<!-- PAGINACIÓN -->
+<div class="paginacion">
     {% if prestamos.has_prev %}
-        <a class="btn" href="?page={{ prestamos.prev_num }}">Anterior</a>
+        <a class="btn" href="?page={{ prestamos.prev_num }}{% if filtros.mecanico %}&mecanico={{ filtros.mecanico }}{% endif %}{% if filtros.herramienta %}&herramienta={{ filtros.herramienta }}{% endif %}{% if filtros.fecha %}&fecha={{ filtros.fecha }}{% endif %}">Anterior</a>
     {% endif %}
 
     {% if prestamos.has_next %}
-        <a class="btn" href="?page={{ prestamos.next_num }}">Siguiente</a>
+        <a class="btn" href="?page={{ prestamos.next_num }}{% if filtros.mecanico %}&mecanico={{ filtros.mecanico }}{% endif %}{% if filtros.herramienta %}&herramienta={{ filtros.herramienta }}{% endif %}{% if filtros.fecha %}&fecha={{ filtros.fecha }}{% endif %}">Siguiente</a>
     {% endif %}
 </div>
 

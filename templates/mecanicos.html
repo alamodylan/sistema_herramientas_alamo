@@ -9,7 +9,8 @@
 </button>
 {% endif %}
 
-<table>
+<!-- TABLA CON CLASE CORRECTA -->
+<table class="tabla-mecanicos">
     <thead>
         <tr>
             <th>Nombre</th>
@@ -21,6 +22,7 @@
             {% endif %}
         </tr>
     </thead>
+
     <tbody>
         {% for m in mecanicos %}
         <tr>
@@ -28,7 +30,6 @@
             <td>{{ m.codigo }}</td>
             <td>{{ m.posicion }}</td>
 
-            <!-- NUEVA COLUMNA -->
             <td>
                 <a class="btn"
                    href="{{ url_for('mecanicos.descargar_barcode_mecanico', id=m.id) }}">
@@ -38,8 +39,12 @@
 
             {% if current_user.es_admin() %}
             <td>
-                <form action="{{ url_for('mecanicos.eliminar_mecanico', id=m.id) }}" method="POST">
-                    <button class="btn-danger" onclick="return confirm('¿Eliminar?')">Eliminar</button>
+                <form action="{{ url_for('mecanicos.eliminar_mecanico', id=m.id) }}"
+                      method="POST">
+                    <button class="btn-danger"
+                            onclick="return confirm('¿Eliminar?')">
+                        Eliminar
+                    </button>
                 </form>
             </td>
             {% endif %}
@@ -62,7 +67,7 @@ function generarCodigoMecanico() {
     return codigo;
 }
 
-// Cuando se abre el modal, asignar un código automáticamente
+// Al abrir el modal, asignar un código aleatorio
 function onOpenAddMecModal() {
     document.getElementById("codigo_mec").value = generarCodigoMecanico();
     document.getElementById("modalAddMec").style.display = "block";

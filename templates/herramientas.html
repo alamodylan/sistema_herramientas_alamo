@@ -9,7 +9,8 @@
 </button>
 {% endif %}
 
-<table>
+<!-- TABLA ACTUALIZADA -->
+<table class="tabla-herramientas">
     <thead>
         <tr>
             <th>Nombre</th>
@@ -21,6 +22,7 @@
             {% endif %}
         </tr>
     </thead>
+
     <tbody>
         {% for h in herramientas %}
         <tr>
@@ -31,8 +33,6 @@
 
             {% if current_user.es_admin() %}
             <td>
-
-                <!-- BOTÓN EDITAR -->
                 <button class="btn"
                     onclick="abrirModalEditar(
                         '{{h.id}}',
@@ -44,14 +44,12 @@
                     Editar
                 </button>
 
-                <!-- BOTÓN ELIMINAR -->
                 <form action="{{ url_for('herramientas.eliminar_herramienta', id=h.id) }}"
                       method="POST" style="margin-top:5px;">
                     <button class="btn-danger" onclick="return confirm('¿Eliminar herramienta?')">
                         Eliminar
                     </button>
                 </form>
-
             </td>
             {% endif %}
         </tr>
