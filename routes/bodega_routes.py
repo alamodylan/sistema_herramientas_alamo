@@ -27,7 +27,11 @@ def bodega():
 
     cr = timezone("America/Costa_Rica")
 
-    herramientas_disponibles = Herramienta.query.filter_by(estado="Disponible").all()
+    # ✅ AHORA: disponibles según cantidad_disponible
+    herramientas_disponibles = Herramienta.query.filter(
+        Herramienta.cantidad_disponible > 0
+    ).all()
+
     prestamos_activos = Prestamo.query.filter_by(estado="Abierto").all()
 
     ahora_cr = datetime.utcnow().replace(tzinfo=utc).astimezone(cr)
@@ -85,7 +89,7 @@ def scan_code():
 
 
 # ============================================================
-#   PRESTAR HERRAMIENTA (FLUJO ORIGINAL)
+#   PRESTAR HERRAMIENTA (CON CANTIDADES)
 # ============================================================
 @bodega_bp.route("/prestar", methods=["POST"])
 @login_required
@@ -101,17 +105,21 @@ def prestar_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
-    if herramienta.estado == "Prestada":
-        return jsonify({"error": "Esta herramienta ya está prestada."}), 400
+    # ✅ Verificamos disponibilidad por cantidad
+    if not herramienta.esta_disponible():
+        return jsonify({"error": "No hay unidades disponibles de esta herramienta."}), 400
 
+    # Crear préstamo (una unidad)
     prestamo = Prestamo(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
         fecha_prestamo=datetime.utcnow(),
-        estado="Abierto"
+        estado="Abierto",
+        cantidad=1,
     )
 
-    herramienta.estado = "Prestada"
+    # Actualizar inventario de la herramienta
+    herramienta.prestar_unidad()
 
     db.session.add(prestamo)
     db.session.commit()
@@ -123,7 +131,7 @@ def prestar_herramienta():
 
 
 # ============================================================
-#   DEVOLVER HERRAMIENTA (FLUJO ORIGINAL)
+#   DEVOLVER HERRAMIENTA (CON CANTIDADES)
 # ============================================================
 @bodega_bp.route("/devolver", methods=["POST"])
 @login_required
@@ -139,6 +147,7 @@ def devolver_herramienta():
     if not herramienta or not mecanico:
         return jsonify({"error": "Datos inválidos"}), 400
 
+    # Buscamos un préstamo ABIERTO para esa herramienta y ese mecánico
     prestamo = Prestamo.query.filter_by(
         id_herramienta=herramienta.id,
         id_mecanico=mecanico.id,
@@ -148,8 +157,9 @@ def devolver_herramienta():
     if not prestamo:
         return jsonify({"error": "Esta herramienta no está registrada como prestada a este mecánico."}), 400
 
+    # Cerrar préstamo y devolver una unidad al inventario
     prestamo.cerrar_prestamo()
-    herramienta.estado = "Disponible"
+    herramienta.devolver_unidad()
 
     db.session.commit()
 
@@ -160,7 +170,7 @@ def devolver_herramienta():
 
 
 # ============================================================
-#   API ESTADO DE BODEGA (FLUJO ORIGINAL)
+#   API ESTADO DE BODEGA
 # ============================================================
 @bodega_bp.route("/estado", methods=["GET"])
 @login_required
@@ -170,11 +180,14 @@ def estado_bodega():
     tz_cr = pytz.timezone("America/Costa_Rica")
     ahora_cr = datetime.now(tz_cr)
 
+    # ✅ Disponibles según cantidad_disponible
     disponibles = [{
         "id": h.id,
         "nombre": h.nombre,
         "codigo": h.codigo,
-    } for h in Herramienta.query.filter_by(estado="Disponible").all()]
+        "cantidad_total": h.cantidad_total,
+        "cantidad_disponible": h.cantidad_disponible,
+    } for h in Herramienta.query.filter(Herramienta.cantidad_disponible > 0).all()]
 
     prestadas = []
     for p in Prestamo.query.filter_by(estado="Abierto").all():
@@ -182,7 +195,13 @@ def estado_bodega():
         minutos = int((ahora_cr - fecha_prestamo_cr).total_seconds() // 60)
 
         prestadas.append({
-            "id": p.herramienta.id,
+            # Para compatibilidad con el JS antiguo:
+            "id": p.herramienta.id,  # id de herramienta
+
+            # Nuevos campos para lógica por par herramienta-mecánico:
+            "herramienta_id": p.id_herramienta,
+            "mecanico_id": p.id_mecanico,
+
             "nombre": p.herramienta.nombre,
             "codigo": p.herramienta.codigo,
             "mecanico": p.mecanico.nombre,

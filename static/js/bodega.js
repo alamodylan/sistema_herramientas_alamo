@@ -22,19 +22,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.error) {
+            alert(data.error);
             input.value = "";
             return;
         }
 
         if (data.tipo === "herramienta") {
             herramientaID = data.id;
-        } 
-        else if (data.tipo === "mecanico") {
+        } else if (data.tipo === "mecanico") {
             mecanicoID = data.id;
         }
 
+        // Cuando ya tenemos herramienta + mecánico, procesamos el movimiento
         if (herramientaID && mecanicoID) {
-            procesarMovimiento(herramientaID, mecanicoID);
+            await procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
             mecanicoID = null;
         }
@@ -49,13 +50,16 @@ document.addEventListener("DOMContentLoaded", () => {
 // ============================
 
 async function procesarMovimiento(herramientaID, mecanicoID) {
-
+    // Obtenemos el estado actual de bodega
     const estado = await fetch("/bodega/estado");
     const est = await estado.json();
 
-    const estaPrestada = est.prestadas.some(p => p.id === herramientaID);
+    // ✅ Ahora verificamos si hay préstamo ABIERTO para este par
+    const tienePrestamo = est.prestadas.some(
+        p => p.herramienta_id === herramientaID && p.mecanico_id === mecanicoID
+    );
 
-    const endpoint = estaPrestada ? "/bodega/devolver" : "/bodega/prestar";
+    const endpoint = tienePrestamo ? "/bodega/devolver" : "/bodega/prestar";
 
     const res = await fetch(endpoint, {
         method: "POST",
@@ -83,7 +87,6 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
 // ============================
 
 async function actualizarTablas() {
-
     const res = await fetch("/bodega/estado");
     const data = await res.json();
 
@@ -96,6 +99,7 @@ async function actualizarTablas() {
             <tr>
                 <td>${h.nombre}</td>
                 <td>${h.codigo}</td>
+                <td>${h.cantidad_disponible}/${h.cantidad_total}</td>
                 <td><span class="badge badge-disponible">Disponible</span></td>
             </tr>`;
     });
