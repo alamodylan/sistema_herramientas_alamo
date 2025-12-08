@@ -446,3 +446,26 @@ input, select {
 .tabla-herramientas td:nth-child(5) {
     width: 20%;
 }
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2b7cff;
+    padding: 12px 18px;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 9000;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.toast.error {
+    background: #ff3b3b;
+}
+
+.toast.ok {
+    background: #28a745;
+}

@@ -40,8 +40,30 @@
         {% block contenido %}{% endblock %}
     </div>
 
+    <!-- =========================================== -->
+    <!--   CONTENEDOR GLOBAL PARA NOTIFICACIONES     -->
+    <!-- =========================================== -->
+    <div id="toast" class="toast"></div>
+
     <!-- JS GLOBAL -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+    <!-- =========================================== -->
+    <!--    FUNCIÓN GLOBAL PARA MOSTRAR TOASTS       -->
+    <!-- =========================================== -->
+    <script>
+    function showToast(msg, tipo="ok") {
+        const t = document.getElementById("toast");
+
+        t.textContent = msg;
+        t.className = "toast " + tipo;
+        t.style.display = "block";
+
+        setTimeout(() => {
+            t.style.display = "none";
+        }, 1600);
+    }
+    </script>
 
     {% block scripts %}{% endblock %}
 
@@ -56,7 +78,7 @@
         document.getElementById("edit_codigo").value = codigo;
         document.getElementById("edit_cantidad_total").value = cantidad_total;
 
-        // Cambiar la acción del formulario según el ID
+        // Cambiar la acción del formulario
         const form = document.getElementById("formEditHerr");
         form.action = "/herramientas/editar/" + id;
 

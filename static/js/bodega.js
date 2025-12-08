@@ -1,3 +1,16 @@
+// Mostrar notificación sin bloquear
+function showToast(msg, tipo="ok") {
+    const t = document.getElementById("toast");
+
+    t.textContent = msg;
+    t.className = "toast " + tipo;
+    t.style.display = "block";
+
+    setTimeout(() => {
+        t.style.display = "none";
+    }, 1600);
+}
+
 // SCRIPT PRINCIPAL DE BODEGA
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("scanInput");
@@ -22,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.error) {
-            alert(data.error);
+            showToast(data.error, "error");
             input.value = "";
             return;
         }
@@ -73,11 +86,11 @@ async function procesarMovimiento(herramientaID, mecanicoID) {
     const data = await res.json();
 
     if (data.error) {
-        alert(data.error);
+        showToast(data.error, "error");
         return;
     }
 
-    alert(data.mensaje);
+    showToast(data.mensaje, "ok");
     actualizarTablas();
 }
 
@@ -99,8 +112,8 @@ async function actualizarTablas() {
             <tr>
                 <td>${h.nombre}</td>
                 <td>${h.codigo}</td>
-                <td>${h.cantidad_disponible}/${h.cantidad_total}</td>
-                <td><span class="badge badge-disponible">Disponible</span></td>
+                <td>${h.cantidad_total}</td>
+                <td>${h.cantidad_disponible}</td>
             </tr>`;
     });
 
