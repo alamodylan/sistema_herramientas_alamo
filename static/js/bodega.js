@@ -12,82 +12,59 @@ function showToast(msg, tipo="ok") {
 }
 
 // SCRIPT PRINCIPAL DE BODEGA
-input.addEventListener("input", async () => {
-    const codigo = input.value.trim();
-    if (!codigo) return;
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("scanInput");
+    input.focus();
 
-    const res = await fetch("/bodega/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo })
-    });
+    let herramientaID = null;
+    let mecanicoID = null;
 
-    const data = await res.json();
+    // Mantener foco en el input
+    setInterval(() => input.focus(), 500);
 
-    // ⚠️ Error REAL del backend: código no existe ni como herramienta ni como mecánico
-    if (data.error) {
-        showToast(data.error, "error");
-        // Rompemos cualquier secuencia que estuviera empezada
-        herramientaID = null;
-        mecanicoID = null;
-        input.value = "";
-        return;
-    }
+    input.addEventListener("input", async () => {
+        const codigo = input.value.trim();
+        if (!codigo) return;
 
-    // ==========================================
-    // 1) PRIMER ESCANEO (no hay nada guardado)
-    // ==========================================
-    if (!herramientaID && !mecanicoID) {
+        const res = await fetch("/bodega/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codigo })
+        });
 
-        // Si el primer código es de MECÁNICO → error
-        if (data.tipo === "mecanico") {
-            showToast("Primero debe escanear una herramienta.", "error");
-            herramientaID = null;
-            mecanicoID = null;
+        const data = await res.json();
+
+        // ================================
+        // CONTROL CORREGIDO DE ERRORES
+        // ================================
+        if (data.error) {
+
+            // Solo mostrar el error si AÚN NO se ha escaneado la herramienta
+            // (es decir: este código fue el primer escaneo)
+            if (!herramientaID) {
+                showToast(data.error, "error");
+            }
+
             input.value = "";
             return;
         }
 
-        // Primer código correcto: herramienta
+        // Asignación según el tipo detectado
         if (data.tipo === "herramienta") {
             herramientaID = data.id;
-            // No mostramos nada, solo esperamos al mecánico
-            input.value = "";
-            return;
+        } else if (data.tipo === "mecanico") {
+            mecanicoID = data.id;
         }
-    }
 
-    // ==========================================
-    // 2) SEGUNDO ESCANEO (ya hay herramienta)
-    // ==========================================
-    if (herramientaID && !mecanicoID) {
-
-        // Aquí ESPERAMOS un mecánico
-        if (data.tipo !== "mecanico") {
-            showToast("Luego debe escanear el código del mecánico.", "error");
-            // Secuencia inválida, reseteamos todo
+        // Cuando ya tenemos herramienta + mecánico, procesamos el movimiento
+        if (herramientaID && mecanicoID) {
+            await procesarMovimiento(herramientaID, mecanicoID);
             herramientaID = null;
             mecanicoID = null;
-            input.value = "";
-            return;
         }
 
-        // Correcto: segundo código es mecánico
-        mecanicoID = data.id;
-    }
-
-    // ==========================================
-    // 3) SI YA TENEMOS HERRAMIENTA + MECÁNICO
-    // ==========================================
-    if (herramientaID && mecanicoID) {
-        await procesarMovimiento(herramientaID, mecanicoID);
-
-        // Dejamos todo listo para la siguiente pareja de escaneos
-        herramientaID = null;
-        mecanicoID = null;
-    }
-
-    input.value = "";
+        input.value = "";
+    });
 });
 
 
