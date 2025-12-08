@@ -1,0 +1,1 @@
+# enables static folder packaging
