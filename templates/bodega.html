@@ -6,35 +6,6 @@
 <p>Escanee herramienta y mecánico para prestar o devolver automáticamente.</p>
 
 <input type="text" id="scanInput" autocomplete="off">
-
-<!-- ===================================================== -->
-<!--   SECCIÓN: HERRAMIENTAS DISPONIBLES                   -->
-<!-- ===================================================== -->
-<div class="section-box">
-    <h2>Herramientas Disponibles</h2>
-
-    <table class="tabla-bodega">
-        <thead>
-            <tr>
-                <th>Herramienta</th>
-                <th>Código</th>
-                <th>Total</th>
-                <th>Disponible</th>
-            </tr>
-        </thead>
-        <tbody id="tablaDisponibles">
-            {% for h in herramientas_disponibles %}
-            <tr>
-                <td>{{ h.nombre }}</td>
-                <td>{{ h.codigo }}</td>
-                <td>{{ h.cantidad_total }}</td>
-                <td>{{ h.cantidad_disponible }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
 <!-- ===================================================== -->
 <!--   SECCIÓN: HERRAMIENTAS PRESTADAS                     -->
 <!-- ===================================================== -->
@@ -59,6 +30,33 @@
                 <td>{{ p.mecanico.nombre }}</td>
                 <td>{{ p.minutos }}</td>
                 <td><span class="badge badge-prestada">Prestada</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- ===================================================== -->
+<!--   SECCIÓN: HERRAMIENTAS DISPONIBLES                   -->
+<!-- ===================================================== -->
+<div class="section-box">
+    <h2>Herramientas Disponibles</h2>
+
+    <table class="tabla-bodega">
+        <thead>
+            <tr>
+                <th>Herramienta</th>
+                <th>Código</th>
+                <th>Total</th>
+                <th>Disponible</th>
+            </tr>
+        </thead>
+        <tbody id="tablaDisponibles">
+            {% for h in herramientas_disponibles %}
+            <tr>
+                <td>{{ h.nombre }}</td>
+                <td>{{ h.codigo }}</td>
+                <td>{{ h.cantidad_total }}</td>
+                <td>{{ h.cantidad_disponible }}</td>
             </tr>
             {% endfor %}
         </tbody>
