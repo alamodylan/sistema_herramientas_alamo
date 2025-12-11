@@ -74,7 +74,7 @@
             </td>
 
             <td>
-                {% if p.tiempo_uso %}
+                {% if p.tiempo_uso is not none %}
                     {{ p.tiempo_uso }} min
                 {% else %}
                     En uso
