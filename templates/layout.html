@@ -18,7 +18,7 @@ olo frontend, sin tocar backend)
         <div class="right">
             <a href="{{ url_for('bodega.bodega') }}">Bodega</a>
 
-            {% if current_user.es_admin() %}
+            {% if current_user.is_authenticated and current_user.es_admin() %}
                 <a href="{{ url_for('mecanicos.lista_mecanicos') }}">Mecánicos</a>
                 <a href="{{ url_for('herramientas.lista_herramientas') }}">Herramientas</a>
             {% endif %}
