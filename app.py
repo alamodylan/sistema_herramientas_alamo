@@ -57,6 +57,18 @@ def create_app():
             db.session.commit()
             print(">>> Usuario admin creado automáticamente")
 
+        # 🔹 Crear usuario de BODEGA si no existe
+        if not Usuario.query.filter_by(email="bodegasjo@alamoterminales.com").first():
+            bodega_user = Usuario(
+                nombre="Bodega SJO",
+                email="bodegasjo@alamoterminales.com",
+                rol="bodega"    # SOLO verá Bodega + Historial
+            )
+            bodega_user.set_password("atm8520")
+            db.session.add(bodega_user)
+            db.session.commit()
+            print(">>> Usuario BODEGA creado automáticamente")
+
     return app
 
 
