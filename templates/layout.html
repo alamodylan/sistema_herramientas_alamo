@@ -1,3 +1,4 @@
+olo frontend, sin tocar backend)
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,10 +14,15 @@
         <div class="left">
             <strong>Sistema Herramientas Álamo</strong>
         </div>
+
         <div class="right">
             <a href="{{ url_for('bodega.bodega') }}">Bodega</a>
-            <a href="{{ url_for('mecanicos.lista_mecanicos') }}">Mecánicos</a>
-            <a href="{{ url_for('herramientas.lista_herramientas') }}">Herramientas</a>
+
+            {% if current_user.es_admin() %}
+                <a href="{{ url_for('mecanicos.lista_mecanicos') }}">Mecánicos</a>
+                <a href="{{ url_for('herramientas.lista_herramientas') }}">Herramientas</a>
+            {% endif %}
+
             <a href="{{ url_for('historial.historial') }}">Historial</a>
             <a href="{{ url_for('auth.logout') }}">Salir</a>
         </div>
@@ -36,21 +42,19 @@
         {% endif %}
         {% endwith %}
 
-        <!-- CONTENIDO DE CADA PÁGINA -->
+        <!-- CONTENIDO ESPECÍFICO -->
         {% block contenido %}{% endblock %}
     </div>
 
-    <!-- =========================================== -->
-    <!--   CONTENEDOR GLOBAL PARA NOTIFICACIONES     -->
-    <!-- =========================================== -->
+
+    <!-- CONTENEDOR GLOBAL PARA NOTIFICACIONES -->
     <div id="toast" class="toast"></div>
+
 
     <!-- JS GLOBAL -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-    <!-- =========================================== -->
-    <!--    FUNCIÓN GLOBAL PARA MOSTRAR TOASTS       -->
-    <!-- =========================================== -->
+    <!-- FUNCIÓN GLOBAL PARA MOSTRAR TOASTS -->
     <script>
     function showToast(msg, tipo="ok") {
         const t = document.getElementById("toast");
@@ -67,22 +71,17 @@
 
     {% block scripts %}{% endblock %}
 
-    <!-- =================================================== -->
-    <!-- FUNCIÓN PARA ABRIR MODAL DE EDITAR HERRAMIENTA      -->
-    <!-- =================================================== -->
+    <!-- FUNCIÓN MODAL EDITAR HERRAMIENTA -->
     <script>
     function abrirModalEditar(id, nombre, codigo, cantidad_total, cantidad_disponible) {
 
-        // Asignar los valores al modal
         document.getElementById("edit_nombre").value = nombre;
         document.getElementById("edit_codigo").value = codigo;
         document.getElementById("edit_cantidad_total").value = cantidad_total;
 
-        // Cambiar la acción del formulario
         const form = document.getElementById("formEditHerr");
         form.action = "/herramientas/editar/" + id;
 
-        // Mostrar el modal
         document.getElementById('modalEditHerr').style.display = 'block';
     }
     </script>
